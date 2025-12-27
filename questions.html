@@ -1,0 +1,2014 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Interactive Quiz</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+
+  <style>
+    :root{
+      --bg1:#f6f7fb; --bg2:#eef2ff;
+      --ink:#0f172a; --muted:rgba(15,23,42,.62);
+      --card:rgba(255,255,255,.92);
+      --border:rgba(15,23,42,.10);
+      --shadow:0 18px 44px rgba(15,23,42,.10);
+
+      --r-xl: clamp(18px, 1.8vw, 28px);
+
+      --fs0: clamp(12px, .25vw + 11px, 14px);
+      --fs1: clamp(14px, .35vw + 13px, 16.5px);
+      --fs2: clamp(16px, .55vw + 15px, 20px);
+
+      --btnH: clamp(42px, 5.2vh, 50px);
+
+      --pad: clamp(10px, 1.2vw, 16px);
+      --gap: clamp(8px, 1.1vw, 12px);
+
+      --imgSz: clamp(54px, 5.6vw, 76px);
+      --choiceImgH: clamp(120px, 20vh, 220px);
+    }
+
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(1200px 600px at 15% 20%, rgba(59,130,246,.20), transparent 55%),
+        radial-gradient(900px 520px at 85% 15%, rgba(245,158,11,.18), transparent 60%),
+        radial-gradient(900px 520px at 70% 90%, rgba(16,185,129,.16), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+    }
+
+    .appWrap{min-height:100vh; padding:var(--pad);}
+    .app{
+      max-width: 1180px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display:flex;
+      flex-direction:column;
+      min-height: calc(100vh - (var(--pad) * 2));
+    }
+    @media (max-width: 768px){
+      .appWrap{padding:0}
+      .app{border-radius:0; min-height:100vh;}
+    }
+
+    .topBar{
+      background: rgba(255,255,255,.96);
+      border-bottom:1px solid rgba(15,23,42,.08);
+      padding: clamp(8px, 1vw, 12px) clamp(10px, 1.2vw, 14px);
+      flex: 0 0 auto;
+    }
+
+    .qHead{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: var(--gap);
+    }
+    .qTitle{
+      font-size: var(--fs2);
+      font-weight: 1000;
+      line-height: 1.15;
+      margin: 0;
+      display:-webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow:hidden;
+    }
+    .qSub{
+      font-size: var(--fs0);
+      color:var(--muted);
+      font-weight:900;
+      margin: 4px 0 0;
+      display:-webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow:hidden;
+    }
+
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 6px 10px;
+      border-radius:999px;
+      font-weight:1000; font-size:var(--fs0);
+      background: rgba(15,23,42,.04);
+      border: 1px solid rgba(15,23,42,.08);
+      white-space:nowrap;
+    }
+
+    @media (max-width: 520px){
+      .topMeta{display:none !important;}
+    }
+
+    .btnKid{
+      height: var(--btnH);
+      border-radius: 14px;
+      font-weight:1000;
+      font-size: var(--fs1);
+      box-shadow: 0 10px 18px rgba(15,23,42,.10);
+      border:0;
+      transition: transform .12s ease, opacity .16s ease;
+      padding-inline: 14px;
+    }
+    .btnKid:active{transform:scale(.99)}
+    .btnKid[disabled]{opacity:.55; transform:none; cursor:not-allowed}
+    .btnPrimary{color:#fff; background: linear-gradient(135deg, rgba(59,130,246,.98), rgba(139,92,246,.98));}
+    .btnSecondary{
+      color: var(--ink);
+      background: rgba(255,255,255,.98);
+      border: 1px solid rgba(15,23,42,.12);
+      box-shadow: 0 8px 14px rgba(15,23,42,.08);
+    }
+
+    .btnSound{
+      height: var(--btnH);
+      min-width: 56px;
+      border-radius: 14px;
+      font-weight:1000;
+      border:0;
+      color:#fff;
+      background: linear-gradient(135deg, rgba(16,185,129,.98), rgba(59,130,246,.98));
+      box-shadow: 0 10px 18px rgba(15,23,42,.10);
+      transition: transform .12s ease, opacity .16s ease;
+    }
+    .btnSound:active{transform:scale(.99)}
+    .btnSound[disabled]{opacity:.55; transform:none; cursor:not-allowed}
+
+    .topMeta{
+      display:flex;
+      flex-wrap:wrap;
+      gap: var(--gap);
+      justify-content: flex-start;
+      margin-top: var(--gap);
+    }
+
+    .stage{
+      flex:1;
+      padding: var(--pad);
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+      min-height: 0;
+    }
+    @media (min-width: 768px){
+      .stage{ overflow:hidden; }
+    }
+
+    .panelKid{
+      background: rgba(255,255,255,.96);
+      border: 1px solid rgba(15,23,42,.10);
+      box-shadow: 0 8px 14px rgba(15,23,42,.06);
+      border-radius: var(--r-xl);
+      padding: var(--pad);
+    }
+    .panelFlex{display:flex; flex-direction:column; min-height:0;}
+    .panelBodyGrow{flex:1; min-height:0;}
+
+    .panelTitle{font-weight:1000; font-size:var(--fs1); margin:0 0 10px}
+    .panelTitle small{color:var(--muted); font-weight:900; font-size:var(--fs0)}
+
+    .cardBtn{
+      text-align: right;
+      border-radius: var(--r-xl);
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(255,255,255,.98);
+      box-shadow: 0 10px 18px rgba(15,23,42,.08);
+      padding: clamp(10px, 1.1vw, 14px);
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      transition: transform .12s ease, border-color .15s ease, box-shadow .15s ease;
+      cursor:pointer;
+
+      /* default sizing */
+      width: fit-content;
+      min-width: clamp(180px, 24vw, 320px);
+      max-width: 100%;
+    }
+    .cardBtn:active{ transform: scale(.995); }
+    .cardBtn[data-selected="1"]{
+      border-color: rgba(59,130,246,.55);
+      box-shadow: 0 14px 26px rgba(59,130,246,.14);
+    }
+
+    .cardLeft{display:flex; align-items:center; gap: 10px; min-width:0;}
+    .cardImg{
+      width: var(--imgSz);
+      height: var(--imgSz);
+      border-radius: 16px;
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(15,23,42,.03);
+      object-fit: cover;
+      flex:0 0 auto;
+    }
+    .cardText{
+      font-weight: 1000;
+      font-size: var(--fs1);
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      max-width: 42ch;
+    }
+
+    /* Choice cards */
+    .choiceGrid{
+      display:grid;
+      gap: var(--gap);
+      grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+      align-items:stretch;
+      justify-items:stretch;
+      min-height: 0;
+    }
+    @media (min-width: 992px){ .choiceGrid{ grid-template-columns: repeat(4, 1fr); } }
+    @media (min-width: 768px) and (max-width: 991.98px){ .choiceGrid{ grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 767.98px){ .choiceGrid{ grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 520px){ .choiceGrid{ grid-template-columns: 1fr; } }
+
+    .choiceCard{
+      width: 100% !important;
+      min-width: 0 !important;
+      height: 100%;
+      display:flex;
+      flex-direction:column;
+      align-items:stretch;
+      justify-content:flex-start;
+      text-align:center;
+      padding: clamp(10px, 1.1vw, 14px);
+      gap: 10px;
+    }
+    .choiceImgWrap{
+      width:100%;
+      border-radius: clamp(16px, 1.6vw, 22px);
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(15,23,42,.03);
+      overflow:hidden;
+      box-shadow: 0 8px 14px rgba(15,23,42,.06);
+      height: var(--choiceImgH);
+      flex: 0 0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .choiceImg{width:100%; height:100%; object-fit: cover; display:block;}
+    .choiceName{
+      font-weight: 1000;
+      font-size: var(--fs1);
+      line-height: 1.2;
+      padding: 2px 6px 0;
+      display:-webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow:hidden;
+      min-height: calc(var(--fs1) * 2.3);
+    }
+    .choiceAudioRow{display:flex; justify-content:center; margin-top:auto;}
+
+    /* Lists + drop zones */
+    .matchOptions{display:flex; flex-direction:column; gap: var(--gap); align-items:stretch;}
+    .matchOptions .cardBtn{width: 100%; min-width: 0; max-width: 100%;}
+
+    .matchLeftImg{
+      width: clamp(56px, 6.2vw, 88px);
+      height: clamp(56px, 6.2vw, 88px);
+      border-radius: 18px;
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(15,23,42,.03);
+      object-fit: cover;
+      flex: 0 0 auto;
+    }
+
+    .vList{display:flex; flex-direction:column; gap: var(--gap); align-items:stretch;}
+    .dropZone{
+      width: 100%;
+      border-radius: var(--r-xl);
+      border: 2px dashed rgba(15,23,42,.18);
+      background: rgba(15,23,42,.02);
+      padding: clamp(10px, 1.1vw, 14px);
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: clamp(64px, 7.2vh, 86px);
+    }
+    .dropZone[data-active="1"]{
+      border-color: rgba(59,130,246,.55);
+      background: rgba(59,130,246,.06);
+    }
+    .zoneFill{
+      font-weight:1000;
+      font-size: var(--fs0);
+      color: rgba(15,23,42,.70);
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(15,23,42,.10);
+      background: rgba(255,255,255,.90);
+      white-space:nowrap;
+      max-width: 48%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .dragItem{ user-select:none; }
+    .dragging{ opacity:.75; transform: scale(.99); }
+
+    .orderIdx{
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display:grid;
+      place-items:center;
+      font-weight: 1000;
+      background: rgba(59,130,246,.10);
+      border: 1px solid rgba(59,130,246,.18);
+      flex: 0 0 auto;
+    }
+    .iconBtn{
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      border: 1px solid rgba(15,23,42,.12);
+      background: rgba(255,255,255,.98);
+      box-shadow: 0 8px 14px rgba(15,23,42,.06);
+      font-weight: 1000;
+      flex: 0 0 auto;
+    }
+    .iconBtn:disabled{ opacity:.45; }
+
+    .footerControls{
+      margin-top: var(--gap);
+      display:flex;
+      flex-wrap:wrap;
+      gap: var(--gap);
+      align-items:center;
+      justify-content:flex-start;
+    }
+    .footerControls .btnKid{flex: 0 0 auto;}
+    @media (max-width: 520px){
+      .footerControls .btnKid{flex: 1 1 auto;}
+    }
+
+    .grid2_1{
+      display:grid;
+      gap: var(--gap);
+      grid-template-columns: 1fr;
+      align-items:stretch;
+      min-height:0;
+    }
+    @media (min-width: 992px){
+      .grid2_1{grid-template-columns: 2fr 1fr;}
+    }
+
+    .paintCanvas,.traceCanvas{
+      width:100%;
+      display:block;
+      border-radius: clamp(16px, 1.8vw, 22px);
+      border: 1px solid rgba(15,23,42,.10);
+      box-shadow: 0 10px 18px rgba(15,23,42,.08);
+      background: rgba(255,255,255,.98);
+      touch-action:none;
+    }
+
+    .swatch{
+      width: clamp(30px, 3.8vw, 36px);
+      height: clamp(30px, 3.8vw, 36px);
+      border-radius: 14px;
+      border: 2px solid rgba(15,23,42,.15);
+      cursor:pointer;
+      box-shadow: 0 8px 14px rgba(15,23,42,.08);
+    }
+    .swatch[data-selected="1"]{outline: 4px solid rgba(59,130,246,.55); outline-offset: 2px;}
+
+    .toastKid{
+      position: fixed;
+      left: 16px;
+      bottom: 16px;
+      z-index: 3000;
+      width: min(380px, calc(100% - 32px));
+      background: rgba(255,255,255,.96);
+      border: 1px solid rgba(15,23,42,.12);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 12px;
+      display:none;
+      gap: 10px;
+      align-items:center;
+      justify-content: space-between;
+    }
+    .toastKid.show{display:flex;}
+    .toastKid b{font-weight:1000}
+
+    .correctPulse{ animation: correctPulse .6s ease-out; }
+    @keyframes correctPulse{ 0%{transform:scale(1)} 40%{transform:scale(1.08)} 100%{transform:scale(1)} }
+    .wrongShake{ animation: wrongShake .45s ease-in-out; }
+    @keyframes wrongShake{
+      0%{transform:translateX(0)}
+      25%{transform:translateX(-6px)}
+      50%{transform:translateX(6px)}
+      75%{transform:translateX(-4px)}
+      100%{transform:translateX(0)}
+    }
+    .starBurst{
+      position: fixed; inset: 0;
+      pointer-events:none;
+      display:grid; place-items:center;
+      z-index: 4000;
+      font-size: 52px;
+      animation: burst .7s ease-out forwards;
+    }
+    @keyframes burst{
+      0%{opacity:0; transform:scale(.6)}
+      40%{opacity:1; transform:scale(1.2)}
+      100%{opacity:0; transform:scale(1.6)}
+    }
+
+    /* =========================================================
+       UPDATED RESPONSIVE TWO-COLUMN + ROW-ALIGNED MATCH
+       ========================================================= */
+
+    /* Two-column wrapper: phone stacks, tablet+ always 2 columns */
+    .twoColGrid{
+      display:grid;
+      gap: var(--gap);
+      grid-template-columns: 1fr;
+      align-items: stretch;
+      min-height: 0;
+    }
+    @media (min-width: 768px){
+      .twoColGrid{ grid-template-columns: 1fr 1fr; }
+      .twoColGrid > .panelKid{ height: 100%; }
+    }
+    .twoColGrid > .panelKid{ min-width: 0 !important; }
+
+    /* Fill width in two-col questions (no wasted space) */
+    .twoColGrid .cardBtn{
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+    }
+
+    /* Row-aligned match (left/right aligned per row) */
+    .pairGrid{
+      display:grid;
+      gap: var(--gap);
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+    @media (min-width: 768px){
+      .pairGrid{ grid-template-columns: 1fr 1fr; }
+    }
+    .pairRow{ display: contents; }
+    .pairGrid .cardBtn{
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="appWrap">
+    <div class="app">
+      <div class="topBar">
+        <div class="qHead">
+          <button class="btnSound" id="btnSound" type="button" disabled>🔊</button>
+          <div style="flex:1; min-width:0;">
+            <h1 class="qTitle" id="qTitle">—</h1>
+            <p class="qSub" id="qSub">—</p>
+            <div class="topMeta" id="topMeta">
+              <span class="pill" id="pillLesson">—</span>
+              <span class="pill" id="pillProgress">0/0</span>
+              <span class="pill" id="pillType">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stage" id="stage">جاري التحميل...</div>
+    </div>
+  </div>
+
+  <div class="toastKid" id="toastKid" role="status" aria-live="polite">
+    <div>
+      <b id="toastTitle">—</b><br/>
+      <span id="toastMsg">—</span>
+    </div>
+    <button class="btnKid btnSecondary px-3" id="toastClose" type="button" style="height:44px">إغلاق</button>
+  </div>
+
+<script>
+/* =========================
+  SETTINGS
+========================= */
+const DATA_FILE = "sections-lessens.json";
+const urlParams = new URL(location.href).searchParams;
+const levelId   = (urlParams.get("level")   || "preliminary").toLowerCase();
+const sectionId = (urlParams.get("section") || "").toLowerCase();
+const lessonId  = (urlParams.get("lesson")  || "");
+
+const audio = new Audio();
+
+/* =========================
+  HELPERS
+========================= */
+const esc = (s) => String(s ?? "")
+  .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+  .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+
+const norm = (s) => String(s||"").replace(/\s+/g," ").trim();
+const isTouch = () => matchMedia("(max-width: 900px)").matches || ("ontouchstart" in window);
+
+function toast(title, msg){
+  $("#toastTitle").text(title);
+  $("#toastMsg").text(msg);
+  $("#toastKid").addClass("show");
+}
+function toastHide(){ $("#toastKid").removeClass("show"); }
+
+function burstStars(){
+  const d = document.createElement("div");
+  d.className = "starBurst";
+  d.textContent = "⭐🎉⭐";
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(), 700);
+}
+function animCorrect($el){
+  const el = ($el && $el[0]) ? $el[0] : $("#stage")[0];
+  el.classList.add("correctPulse");
+  burstStars();
+  setTimeout(()=>el.classList.remove("correctPulse"), 650);
+}
+function animWrong($el){
+  const el = ($el && $el[0]) ? $el[0] : $("#stage")[0];
+  el.classList.add("wrongShake");
+  setTimeout(()=>el.classList.remove("wrongShake"), 460);
+}
+
+function playSound(url){
+  if(!url){ toast("تنبيه","لا يوجد ملف صوت"); return; }
+  audio.pause();
+  audio.src = url;
+  audio.currentTime = 0;
+  audio.play().catch(()=>toast("تنبيه","تعذر تشغيل الصوت"));
+}
+
+function pickText(o){
+  return String(o?.text ?? o?.label ?? o?.name ?? o?.letter ?? "").trim();
+}
+function visualSrc(o){
+  const img = String(o?.imageUrl ?? "").trim();
+  return img || "";
+}
+
+function hintFor(type){
+  const touch = isTouch();
+  return ({
+    multiple_choice: "اختر الإجابة ثم اضغط (تحقق)",
+    listen_choose:   "اضغط (اسمع) ثم اختر ثم (تحقق)",
+    match:           "اختر من اليسار ثم من اليمين ثم (تحقق)",
+    drag_drop:       touch ? "اختر العنصر ثم اضغط الهدف" : "اسحب وضع العنصر على الهدف",
+    ordering:        touch ? "استخدم ⬆️⬇️ ثم (تحقق)" : "اسحب لترتيب العناصر ثم (تحقق)",
+    classification:  touch ? "اختر عنصرًا ثم اضغط الفئة" : "اسحب كل عنصر للفئة ثم (تحقق)",
+    coloring:        "لوّن داخل الشكل فقط ثم (تحقق)",
+    build_construct: "اضغط القطع لتكوين الكلمة ثم (تحقق)",
+    trace_write:     "اكتب فوق القالب ثم (تحقق)"
+  })[type] || "اختر/حرّك ثم اضغط (تحقق)";
+}
+
+function setTop({title, sub, lesson, progress, type, audioUrl}){
+  $("#qTitle").text(title || "سؤال");
+  $("#qSub").text(sub || "");
+  $("#pillLesson").text(lesson || "—");
+  $("#pillProgress").text(progress || "—");
+  $("#pillType").text(type || "—");
+
+  const $btn = $("#btnSound");
+  $btn.prop("disabled", !audioUrl);
+  $btn.off("click").on("click", () => playSound(audioUrl));
+}
+
+function feedback(ok, msg, $target){
+  toast(ok ? "صحيح ✅" : "جرّب مرة أخرى 🔄", msg);
+  const fb = state.lesson?.interactive?.feedbackAudio || {};
+  const snd = ok ? fb.correct : fb.wrong;
+  if(snd) playSound(snd);
+  ok ? animCorrect($target) : animWrong($target);
+}
+
+/* =========================
+  FOOTER CONTROLS
+========================= */
+function footerControls(){
+  return `
+    <div class="footerControls" id="footerControls">
+      <button class="btnKid btnPrimary" id="btnCheck" type="button">✅ تحقق</button>
+      <button class="btnKid btnSecondary" id="btnTry" type="button">🔁 حاول مرة أخرى</button>
+      <button class="btnKid btnSecondary" id="btnBack" type="button">⬅️ رجوع</button>
+    </div>
+  `;
+}
+function wireFooter(){
+  $("#btnCheck").off("click").on("click", ()=>validate());
+  $("#btnTry").off("click").on("click", ()=>{ resetQ(); render(); });
+  $("#btnBack").off("click").on("click", ()=>history.back());
+  $("#toastClose").off("click").on("click", toastHide);
+}
+
+/* =========================
+  CANVAS UTIL (paint/trace)
+========================= */
+function canvasPos(canvas, clientX, clientY){
+  const r = canvas.getBoundingClientRect();
+  const x = (clientX - r.left) * (canvas.width / r.width);
+  const y = (clientY - r.top)  * (canvas.height / r.height);
+  return {x, y};
+}
+function installPointerDraw({ canvas, ctx, getStrokeStyle, onStrokeStart }){
+  let drawing = false;
+  let last = null;
+
+  function getPoint(e){
+    const t = e.touches && e.touches[0] ? e.touches[0] : null;
+    const cx = t ? t.clientX : e.clientX;
+    const cy = t ? t.clientY : e.clientY;
+    return canvasPos(canvas, cx, cy);
+  }
+
+  function start(e){
+    e.preventDefault();
+    drawing = true;
+    const p = getPoint(e);
+    last = p;
+
+    const st = getStrokeStyle();
+    ctx.save();
+    ctx.globalAlpha = st.opacity ?? 1;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = st.color ?? "#111827";
+    ctx.lineWidth = st.size ?? 10;
+    ctx.globalCompositeOperation = st.composite ?? "source-over";
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.lineTo(p.x + 0.01, p.y + 0.01);
+    ctx.stroke();
+    ctx.restore();
+
+    onStrokeStart && onStrokeStart();
+  }
+
+  function move(e){
+    if(!drawing) return;
+    e.preventDefault();
+    const p = getPoint(e);
+    const st = getStrokeStyle();
+    ctx.save();
+    ctx.globalAlpha = st.opacity ?? 1;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = st.color ?? "#111827";
+    ctx.lineWidth = st.size ?? 10;
+    ctx.globalCompositeOperation = st.composite ?? "source-over";
+    ctx.beginPath();
+    ctx.moveTo(last.x, last.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    ctx.restore();
+    last = p;
+  }
+
+  function end(e){
+    if(!drawing) return;
+    e.preventDefault();
+    drawing = false;
+    last = null;
+  }
+
+  canvas.addEventListener("pointerdown", start, {passive:false});
+  canvas.addEventListener("pointermove", move, {passive:false});
+  window.addEventListener("pointerup", end, {passive:false});
+
+  canvas.addEventListener("touchstart", start, {passive:false});
+  canvas.addEventListener("touchmove", move, {passive:false});
+  window.addEventListener("touchend", end, {passive:false});
+}
+
+function countNonTransparentPixels(ctx){
+  const {width, height} = ctx.canvas;
+  const img = ctx.getImageData(0,0,width,height).data;
+  let n = 0;
+  for(let i=3; i<img.length; i+=4){
+    if(img[i] > 20) n++;
+  }
+  return n;
+}
+
+function drawTemplateText(ctx, text){
+  const cw = ctx.canvas.width, ch = ctx.canvas.height;
+  ctx.save();
+  ctx.clearRect(0,0,cw,ch);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0,0,cw,ch);
+
+  ctx.fillStyle = "rgba(15,23,42,.55)";
+  ctx.font = `900 ${Math.floor(Math.min(cw, ch) * 0.40)}px Tahoma, Arial, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.lineWidth = Math.max(6, Math.floor(Math.min(cw,ch)*0.02));
+  ctx.setLineDash([2, 16]);
+  ctx.strokeStyle = "rgba(15,23,42,.35)";
+  ctx.strokeText(text, cw/2, ch/2);
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+/* Coloring + SVG helpers */
+function loadImg(url){
+  return new Promise((resolve, reject)=>{
+    if(!url) return reject(new Error("missing url"));
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = ()=>resolve(img);
+    img.onerror = ()=>reject(new Error("image load failed: " + url));
+    img.src = url;
+  });
+}
+function drawContain(ctx, img, pad=18){
+  const cw = ctx.canvas.width, ch = ctx.canvas.height;
+  const maxW = cw - pad*2, maxH = ch - pad*2;
+  const s = Math.min(maxW / img.width, maxH / img.height);
+  const w = img.width * s, h = img.height * s;
+  const x = (cw - w)/2, y = (ch - h)/2;
+  ctx.drawImage(img, x, y, w, h);
+}
+async function drawSvgToCanvas(ctx, svgUrl, cw, ch){
+  const res = await fetch(svgUrl, {cache:"no-store"});
+  if(!res.ok) throw new Error("SVG fetch failed");
+  const svgText = await res.text();
+  const blob = new Blob([svgText], {type:"image/svg+xml"});
+  const url = URL.createObjectURL(blob);
+  try{
+    const img = await loadImg(url);
+    ctx.clearRect(0,0,cw,ch);
+    ctx.fillStyle="#ffffff";
+    ctx.fillRect(0,0,cw,ch);
+    drawContain(ctx, img, 18);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function coverageFromMask(drawCtx, maskCtx){
+  const w = drawCtx.canvas.width, h = drawCtx.canvas.height;
+  const draw = drawCtx.getImageData(0,0,w,h).data;
+  const mask = maskCtx.getImageData(0,0,w,h).data;
+
+  let allowed = 0;
+  let paintedInside = 0;
+
+  for(let i=0; i<mask.length; i+=4){
+    const maskA = mask[i+3];
+    if(maskA > 20){
+      allowed++;
+      const drawA = draw[i+3];
+      if(drawA > 20) paintedInside++;
+    }
+  }
+  return allowed ? (paintedInside / allowed) : 0;
+}
+
+/* =========================
+  DATA + FLOW
+========================= */
+const state = {
+  data:null, level:null, section:null, lesson:null,
+  flow:[], idx:0,
+  q:{},
+  dragId:"",
+  selectedForTap:null,
+  paint:null,
+  trace:null
+};
+
+function findBy(arr, key, val){
+  return (Array.isArray(arr)?arr:[])
+    .find(x => String(x?.[key]||"").toLowerCase() === String(val||"").toLowerCase()) || null;
+}
+function findLesson(level, section, lesson){
+  const sec = findBy(level?.sections, "sectionId", section);
+  if(!sec) return {sec:null, les:null};
+  const les = (Array.isArray(sec.lessons)?sec.lessons:[])
+    .find(L => String(L.lessonId||"") === String(lesson)) || null;
+  return {sec, les};
+}
+function buildFlow(lesson){
+  const inter = lesson?.interactive || {};
+  const byItem = inter.flowByItem || {};
+  const bank = Array.isArray(inter.questionBank) ? inter.questionBank : [];
+  const byId = new Map(bank.map(q => [q.id, q]));
+  const out = [];
+  Object.entries(byItem).forEach(([itemId, ids]) => {
+    const seen = new Set();
+    (ids||[]).forEach(qId => {
+      if(seen.has(qId)) return;
+      seen.add(qId);
+      const qObj = byId.get(qId);
+      if(qObj) out.push({itemId, qId, q: qObj});
+    });
+  });
+  return out;
+}
+
+/* ===== Per-item question resolving ===== */
+function getItemById(itemId){
+  return (state.lesson?.items || []).find(it => String(it.itemId) === String(itemId)) || null;
+}
+function resolveQuestion(entry){
+  const q = entry?.q || {};
+  const item = getItemById(entry.itemId);
+  const itemText = String(item?.front?.text || item?.back?.title || "").trim();
+
+  const out = JSON.parse(JSON.stringify(q)); // clone
+  out.prompt = out.prompt || {};
+
+  if(String(out.prompt.text || "").includes("{item}")){
+    out.prompt.text = String(out.prompt.text).replaceAll("{item}", itemText);
+  }
+
+  if(!out.prompt.imageUrl && item?.front?.imageUrl) out.prompt.imageUrl = item.front.imageUrl;
+  if(!out.prompt.audioUrl && item?.front?.audioUrl) out.prompt.audioUrl = item.front.audioUrl;
+
+  if(out.type === "trace_write"){
+    if(!out.prompt.text) out.prompt.text = itemText ? `اكتب كلمة: ${itemText}` : "اكتب";
+    out.trace = out.trace || {};
+    if(!out.trace.text) out.trace.text = itemText || out.traceText || out.letter || "ا";
+  }
+
+  if(out.type === "build_construct"){
+    out.answer = out.answer || {};
+    if(!out.answer.text && itemText) out.answer.text = itemText;
+  }
+
+  return out;
+}
+
+/* =========================
+  GLOBAL DND
+========================= */
+$(document).on("dragstart", "[data-dragid],[data-orderid]", function(e){
+  state.dragId = $(this).attr("data-dragid") || $(this).attr("data-orderid") || "";
+  $(this).addClass("dragging");
+  try{ e.originalEvent.dataTransfer.setData("text/plain", state.dragId); }catch(_){}
+});
+$(document).on("dragend", "[data-dragid],[data-orderid]", function(){
+  $(this).removeClass("dragging");
+  state.dragId = "";
+});
+$(document).on("dragover", "[data-dropid],[data-orderid]", function(e){ e.preventDefault(); });
+$(document).on("dragenter", "[data-dropid]", function(){ $(this).attr("data-active","1"); });
+$(document).on("dragleave", "[data-dropid]", function(e){
+  if(this.contains(e.relatedTarget)) return;
+  $(this).attr("data-active","0");
+});
+
+/* =========================
+  RENDER CORE
+========================= */
+function resetQ(){
+  state.q = {};
+  state.selectedForTap = null;
+  state.paint = null;
+  state.trace = null;
+}
+function curEntry(){ return state.flow[state.idx]; }
+function progressText(){ return `${Math.min(state.idx+1, state.flow.length)}/${state.flow.length}`; }
+
+function nextQ(){
+  if(state.idx < state.flow.length - 1){
+    state.idx++; resetQ(); render();
+    return;
+  }
+  setTop({
+    title:"أحسنت! انتهيت 🎉",
+    sub:"يمكنك الرجوع أو إعادة التشغيل",
+    lesson: state.lesson?.title || "—",
+    progress:`${state.flow.length}/${state.flow.length}`,
+    type:"النهاية",
+    audioUrl:""
+  });
+  $("#stage").html(`
+    <div class="panelKid text-center">
+      <div style="font-size:clamp(28px, 2vw + 18px, 44px); font-weight:1000">🏁</div>
+      <div class="mt-2" style="font-size:var(--fs2); font-weight:1000;">تم إنهاء جميع الأسئلة لهذا الدرس.</div>
+      <div class="mt-2" style="color:rgba(15,23,42,.62); font-weight:900; line-height:1.7;">
+        يمكنك الرجوع أو إعادة التشغيل من البداية.
+      </div>
+      <div class="d-flex gap-2 justify-content-center flex-wrap mt-3">
+        <button class="btnKid btnSecondary px-3" id="doneBack" type="button">⬅️ رجوع</button>
+        <button class="btnKid btnPrimary px-3" id="doneRestart" type="button">🔄 إعادة من البداية</button>
+      </div>
+    </div>
+  `);
+  $("#doneBack").on("click", ()=>history.back());
+  $("#doneRestart").on("click", ()=>{ state.idx=0; resetQ(); render(); });
+}
+
+/* =========================
+  RENDERERS
+========================= */
+function renderChoice(entry){
+  const q = entry.q;
+  const choices = Array.isArray(q.choices)?q.choices:[];
+  state.q.selected ??= null;
+
+  setTop({
+    title: q?.prompt?.text || "سؤال",
+    sub: hintFor(q.type),
+    lesson: state.lesson?.title || "—",
+    progress: progressText(),
+    type: (q.type === "listen_choose") ? "استمع واختر" : "اختيار",
+    audioUrl: q?.prompt?.audioUrl || ""
+  });
+
+  $("#stage").html(`
+    <div class="choiceGrid" id="choiceGrid">
+      ${choices.map((c, i) => {
+        const id = String(c.id ?? i);
+        const img = visualSrc(c);
+        const txt = pickText(c);
+        const aud = String(c.audioUrl || "").trim();
+        return `
+          <div class="cardBtn choiceCard" role="button" tabindex="0"
+            data-choice="${esc(id)}"
+            data-selected="${state.q.selected===id ? "1":"0"}">
+            <div class="choiceImgWrap">
+              ${img ? `<img class="choiceImg" src="${esc(img)}" alt=""/>` : `<div class="pill">بدون صورة</div>`}
+            </div>
+            <div class="choiceName">${esc(txt || "—")}</div>
+            ${aud ? `
+              <div class="choiceAudioRow">
+                <button class="iconBtn" type="button" data-choice-audio="${esc(aud)}">🔊</button>
+              </div>
+            ` : `<div style="height:42px"></div>`}
+          </div>
+        `;
+      }).join("")}
+    </div>
+
+    ${footerControls()}
+  `);
+
+  $("#stage").off("click.choice").on("click.choice", "[data-choice]", function(e){
+    if($(e.target).is("[data-choice-audio]")) return;
+    state.q.selected = $(this).attr("data-choice");
+    render();
+  });
+
+  $("#stage").off("click.choiceAudio").on("click.choiceAudio", "[data-choice-audio]", function(e){
+    e.stopPropagation();
+    playSound($(this).attr("data-choice-audio"));
+  });
+
+  wireFooter();
+}
+
+/* UPDATED: Match row-aligned (left/right per row) */
+function renderMatch(entry){
+  const q = entry.q;
+  const left = Array.isArray(q.left)?q.left:[];
+  const right = Array.isArray(q.right)?q.right:[];
+  state.q.leftPick ??= null;
+  state.q.pairs ??= {};
+
+  setTop({
+    title: q?.prompt?.text || "طابق",
+    sub: hintFor("match"),
+    lesson: state.lesson?.title || "—",
+    progress: progressText(),
+    type: `مطابقة (${Object.keys(state.q.pairs).length}/${left.length})`,
+    audioUrl: q?.prompt?.audioUrl || ""
+  });
+
+  const rows = Math.max(left.length, right.length);
+
+  $("#stage").html(`
+    <div class="panelKid panelFlex">
+      <p class="panelTitle">المطابقة <small>اليسار مع اليمين (صف بصف)</small></p>
+
+      <div class="pairGrid panelBodyGrow" id="pairGrid">
+        ${Array.from({length: rows}).map((_, i) => {
+          const l = left[i] || null;
+          const r = right[i] || null;
+
+          const lHtml = l ? (() => {
+            const img = visualSrc(l);
+            const txt = pickText(l);
+            return `
+              <button class="cardBtn" type="button"
+                data-left="${esc(l.id)}"
+                data-selected="${state.q.leftPick===l.id ? "1":"0"}">
+                <div class="cardLeft">
+                  ${img ? `<img class="matchLeftImg" src="${esc(img)}" alt=""/>` : ``}
+                  ${txt ? `<div class="cardText">${esc(txt)}</div>` : ``}
+                </div>
+              </button>
+            `;
+          })() : `<div></div>`;
+
+          const rHtml = r ? (() => {
+            const txt = pickText(r);
+            return `
+              <button class="cardBtn" type="button" data-right="${esc(r.id)}">
+                <div class="cardLeft">
+                  <div class="cardText">${esc(txt)}</div>
+                </div>
+              </button>
+            `;
+          })() : `<div></div>`;
+
+          return `<div class="pairRow">${lHtml}${rHtml}</div>`;
+        }).join("")}
+      </div>
+
+      <div class="d-flex gap-2 flex-wrap mt-3">
+        <button class="btnKid btnSecondary px-3" id="matchClear" type="button">مسح</button>
+        <span class="pill">اختر يسار ثم يمين</span>
+      </div>
+    </div>
+
+    ${footerControls()}
+  `);
+
+  $("#stage").off("click.matchL").on("click.matchL", "[data-left]", function(){
+    state.q.leftPick = $(this).attr("data-left");
+    render();
+  });
+  $("#stage").off("click.matchR").on("click.matchR", "[data-right]", function(){
+    const rid = $(this).attr("data-right");
+    const lid = state.q.leftPick;
+    if(!lid){ toast("تنبيه","اختر عنصرًا من اليسار أولًا"); return; }
+    state.q.pairs = state.q.pairs || {};
+    state.q.pairs[lid] = rid;
+    state.q.leftPick = null;
+    render();
+  });
+  $("#stage").off("click.matchClear").on("click.matchClear", "#matchClear", function(){
+    state.q.leftPick=null; state.q.pairs={}; render();
+  });
+
+  wireFooter();
+}
+
+/* UPDATED: drag_drop uses twoColGrid (tablet always 2 columns) */
+function renderDragDrop(entry){
+  const q = entry.q;
+
+  const drags = Array.isArray(q.draggable) ? q.draggable
+             : Array.isArray(q.draggables) ? q.draggables
+             : [];
+
+  const drops = Array.isArray(q.targets) ? q.targets
+             : Array.isArray(q.dropZones) ? q.dropZones
+             : [];
+
+  state.q.assign ??= {};
+
+  setTop({
+    title: q?.prompt?.text || "اسحب وضع",
+    sub: hintFor("drag_drop"),
+    lesson: state.lesson?.title || "—",
+    progress: progressText(),
+    type: "سحب وإفلات",
+    audioUrl: q?.prompt?.audioUrl || ""
+  });
+
+  const leftHtml = drags.map(d => {
+    const used = Object.values(state.q.assign).includes(String(d.id));
+    const img = visualSrc(d);
+    const txt = pickText(d);
+    return `
+      <button class="cardBtn dragItem" type="button"
+        ${isTouch() ? "" : `draggable="true"`}
+        data-dragid="${esc(d.id)}"
+        style="${used ? "opacity:.55" : ""}">
+        <div class="cardLeft">
+          ${img ? `<img class="cardImg" src="${esc(img)}" alt=""/>` : ``}
+          <div class="cardText">${esc(txt)}</div>
+        </div>
+      </button>
+    `;
+  }).join("");
+
+  const rightHtml = drops.map(z => {
+    const tid = String(z.id);
+    const fillId = state.q.assign[tid] || "";
+    const fillObj = drags.find(d => String(d.id) === String(fillId));
+    const fillText = fillObj ? pickText(fillObj) : (isTouch() ? "اضغط لاختيار" : "اسحب هنا");
+
+    const img = visualSrc(z);
+    const label = String(z.label ?? pickText(z) ?? "").trim();
+
+    return `
+      <div class="dropZone" data-dropid="${esc(tid)}" data-active="0">
+        <div class="d-flex align-items-center gap-2 min-w-0" style="min-width:0">
+          ${img ? `<img class="cardImg" src="${esc(img)}" alt=""/>` : ``}
+          <div style="font-weight:1000; font-size:var(--fs1); overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+            ${esc(label)}
+          </div>
+        </div>
+        <div class="zoneFill">${esc(fillText || "—")}</div>
+      </div>
+    `;
+  }).join("");
+
+  $("#stage").html(`
+    <div class="twoColGrid">
+      <div class="panelKid panelFlex">
+        <p class="panelTitle">العناصر <small>${isTouch() ? "اضغط للاختيار" : "اسحب"}</small></p>
+        <div class="vList panelBodyGrow" id="ddLeft">${leftHtml}</div>
+        ${isTouch() ? `<div class="mt-2"><span class="pill">المختار: <span id="tapPick">—</span></span></div>` : ``}
+      </div>
+
+      <div class="panelKid panelFlex">
+        <p class="panelTitle">الأهداف <small>${isTouch() ? "اضغط الهدف لوضع المختار" : "إفلات"}</small></p>
+        <div class="vList panelBodyGrow" id="ddRight">${rightHtml}</div>
+        <div class="d-flex gap-2 flex-wrap mt-3">
+          <button class="btnKid btnSecondary px-3" id="ddClear" type="button">مسح</button>
+        </div>
+      </div>
+    </div>
+
+    ${footerControls()}
+  `);
+
+  if(isTouch()){
+    const name = state.selectedForTap
+      ? pickText(drags.find(d=>String(d.id)===String(state.selectedForTap))||{})
+      : "—";
+    $("#tapPick").text(name || "—");
+  }
+
+  $("#stage").off("drop.dd").on("drop.dd", "[data-dropid]", function(e){
+    e.preventDefault();
+    $(this).attr("data-active","0");
+
+    const targetId = $(this).attr("data-dropid");
+    const dragId = state.dragId || (()=>{ try{return e.originalEvent.dataTransfer.getData("text/plain")}catch(_){return ""} })();
+    if(!dragId || !targetId) return;
+
+    state.q.assign = state.q.assign || {};
+    state.q.assign[targetId] = String(dragId);
+    render();
+  });
+
+  $("#stage").off("click.ddtapDrag").on("click.ddtapDrag", "#ddLeft [data-dragid]", function(){
+    if(!isTouch()) return;
+    state.selectedForTap = $(this).attr("data-dragid");
+    render();
+  });
+  $("#stage").off("click.ddtapDrop").on("click.ddtapDrop", "#ddRight [data-dropid]", function(){
+    if(!isTouch()) return;
+    const targetId = $(this).attr("data-dropid");
+    if(!state.selectedForTap){ toast("تنبيه","اختر عنصرًا أولًا"); return; }
+    state.q.assign = state.q.assign || {};
+    state.q.assign[targetId] = String(state.selectedForTap);
+    state.selectedForTap = null;
+    render();
+  });
+  $("#stage").off("click.ddClear").on("click.ddClear", "#ddClear", function(){
+    state.q.assign = {}; state.selectedForTap=null; render();
+  });
+
+  wireFooter();
+}
+
+function renderOrdering(entry){
+  const q = entry.q;
+  const items = Array.isArray(q.tiles) ? q.tiles
+             : Array.isArray(q.items) ? q.items
+             : [];
+  state.q.order ??= items.map(x => String(x.id));
+
+  setTop({
+    title: q?.prompt?.text || "رتّب",
+    sub: hintFor("ordering"),
+    lesson: state.lesson?.title || "—",
+    progress: progressText(),
+    type: "ترتيب",
+    audioUrl: q?.prompt?.audioUrl || ""
+  });
+
+  const byId = new Map(items.map(it => [String(it.id), it]));
+  const rows = state.q.order.map((id, idx) => {
+    const it = byId.get(String(id)) || {};
+    const img = visualSrc(it);
+    const txt = pickText(it);
+    return `
+      <div class="cardBtn ${isTouch() ? "" : "dragItem"}"
+           ${isTouch() ? "" : `draggable="true"`}
+           data-orderid="${esc(id)}" data-index="${idx}">
+        <div class="cardLeft">
+          <div class="orderIdx">${idx+1}</div>
+          ${img ? `<img class="cardImg" src="${esc(img)}" alt=""/>` : ``}
+          <div class="cardText">${esc(txt)}</div>
+        </div>
+        <div class="d-flex gap-2">
+          ${isTouch() ? `
+            <button class="iconBtn" type="button" data-move="up" ${idx===0?"disabled":""}>⬆️</button>
+            <button class="iconBtn" type="button" data-move="down" ${idx===state.q.order.length-1?"disabled":""}>⬇️</button>
+          ` : `<span class="pill">↕️</span>`}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  $("#stage").html(`
+    <div class="panelKid panelFlex">
+      <p class="panelTitle">رتّب العناصر <small>${isTouch() ? "بالأسهم" : "اسحب لأعلى/أسفل"}</small></p>
+      <div class="vList panelBodyGrow" id="orderList">${rows}</div>
+      <div class="d-flex gap-2 flex-wrap mt-3">
+        <button class="btnKid btnSecondary px-3" id="orderReset" type="button">إعادة</button>
+      </div>
+    </div>
+
+    ${footerControls()}
+  `);
+
+  $("#stage").off("click.orderMove").on("click.orderMove", "[data-move]", function(e){
+    e.stopPropagation();
+    const dir = $(this).attr("data-move");
+    const $row = $(this).closest("[data-orderid]");
+    const id = $row.attr("data-orderid");
+    const idx = Number($row.attr("data-index"));
+    const arr = (state.q.order || []).slice();
+    const swapWith = dir === "up" ? idx-1 : idx+1;
+    if(swapWith < 0 || swapWith >= arr.length) return;
+    [arr[idx], arr[swapWith]] = [arr[swapWith], arr[idx]];
+    state.q.order = arr;
+    render();
+  });
+
+  $("#stage").off("click.orderReset").on("click.orderReset", "#orderReset", function(){
+    state.q.order = items.map(x=>String(x.id));
+    render();
+  });
+
+  $("#stage").off("drop.order").on("drop.order", "[data-orderid]", function(e){
+    e.preventDefault();
+    if(isTouch()) return;
+
+    const targetId = $(this).attr("data-orderid");
+    const dragId = state.dragId;
+    if(!dragId || !targetId || dragId === targetId) return;
+
+    const arr = (state.q.order || []).slice();
+    const from = arr.indexOf(String(dragId));
+    const to   = arr.indexOf(String(targetId));
+    if(from < 0 || to < 0) return;
+    arr.splice(to, 0, arr.splice(from, 1)[0]);
+    state.q.order = arr;
+    render();
+  });
+
+  wireFooter();
+}
+
+/* UPDATED: classification uses twoColGrid (tablet always 2 columns) */
+function renderClassification(entry){
+  const q = entry.q;
+  const items = Array.isArray(q.items)?q.items:[];
+  const cats  = Array.isArray(q.categories)?q.categories:[];
+  state.q.catAssign ??= {};
+
+  setTop({
+    title: q?.prompt?.text || "صنّف",
+    sub: hintFor("classification"),
+    lesson: state.lesson?.title || "—",
+    progress: progressText(),
+    type: "تصنيف",
+    audioUrl: q?.prompt?.audioUrl || ""
+  });
+
+  const itemsHtml = items.map(it => {
+    const used = !!state.q.catAssign[String(it.id)];
+    const img = visualSrc(it);
+    const txt = pickText(it);
+    return `
+      <button class="cardBtn dragItem" type="button"
+        ${isTouch() ? "" : `draggable="true"`}
+        data-dragid="${esc(it.id)}"
+        style="${used ? "opacity:.55" : ""}">
+        <div class="cardLeft">
+          ${img ? `<img class="matchLeftImg" src="${esc(img)}" alt=""/>` : ``}
+          ${txt ? `<div class="cardText">${esc(txt)}</div>` : ``}
+        </div>
+      </button>
+    `;
+  }).join("");
+
+  const catsHtml = cats.map(c => {
+    const label = String(c.label ?? c.name ?? c.text ?? "");
+    const list = items
+      .filter(it => String(state.q.catAssign[String(it.id)]||"") === String(c.id))
+      .map(it => pickText(it)).filter(Boolean);
+
+    return `
+      <div class="dropZone" data-dropid="${esc(c.id)}" data-active="0" style="flex-direction:column; align-items:stretch;">
+        <div class="d-flex align-items-center justify-content-between gap-2">
+          <div style="font-weight:1000; font-size:var(--fs1);">${esc(label || "فئة")}</div>
+          <span class="pill">${list.length} عنصر</span>
+        </div>
+        <div class="mt-2" style="display:flex; gap:8px; flex-wrap:wrap;">
+          ${list.length
+            ? list.map(t => `<span class="pill" style="background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.18)">${esc(t)}</span>`).join("")
+            : `<span class="pill">ضع العناصر هنا</span>`
+          }
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  $("#stage").html(`
+    <div class="twoColGrid">
+      <div class="panelKid panelFlex">
+        <p class="panelTitle">العناصر <small>${isTouch() ? "اضغط للاختيار" : "اسحب"}</small></p>
+        <div class="matchOptions panelBodyGrow" id="clsItems">${itemsHtml}</div>
+        ${isTouch() ? `<div class="mt-2"><span class="pill">المختار: <span id="clsPick">—</span></span></div>` : ``}
+        <div class="d-flex gap-2 flex-wrap mt-3">
+          <button class="btnKid btnSecondary px-3" id="clsClear" type="button">مسح</button>
+        </div>
+      </div>
+
+      <div class="panelKid panelFlex">
+        <p class="panelTitle">الفئات <small>${isTouch() ? "اضغط الفئة لوضع المختار" : "إفلات"}</small></p>
+        <div class="vList panelBodyGrow" id="clsCats">${catsHtml}</div>
+      </div>
+    </div>
+
+    ${footerControls()}
+  `);
+
+  if(isTouch()){
+    const name = state.selectedForTap ? pickText(items.find(d=>String(d.id)===String(state.selectedForTap))||{}) : "—";
+    $("#clsPick").text(name || "—");
+  }
+
+  $("#stage").off("drop.cls").on("drop.cls", "#clsCats [data-dropid]", function(e){
+    e.preventDefault();
+    $(this).attr("data-active","0");
+
+    const catId = $(this).attr("data-dropid");
+    const itemId = state.dragId;
+    if(!catId || !itemId) return;
+
+    state.q.catAssign = state.q.catAssign || {};
+    state.q.catAssign[String(itemId)] = String(catId);
+    render();
+  });
+
+  $("#stage").off("click.clsPick").on("click.clsPick", "#clsItems [data-dragid]", function(){
+    if(!isTouch()) return;
+    state.selectedForTap = $(this).attr("data-dragid");
+    render();
+  });
+
+  $("#stage").off("click.clsCat").on("click.clsCat", "#clsCats [data-dropid]", function(){
+    if(!isTouch()) return;
+    const catId = $(this).attr("data-dropid");
+    if(!state.selectedForTap){ toast("تنبيه","اختر عنصرًا أولًا"); return; }
+
+    state.q.catAssign = state.q.catAssign || {};
+    state.q.catAssign[String(state.selectedForTap)] = String(catId);
+    state.selectedForTap = null;
+    render();
+  });
+
+  $("#stage").off("click.clsClear").on("click.clsClear", "#clsClear", function(){
+    state.q.catAssign = {};
+    state.selectedForTap = null;
+    render();
+  });
+
+  wireFooter();
+}
+
+function renderBuild(entry){
+  const q = entry.q;
+  const tiles = Array.isArray(q.tiles)?q.tiles:[];
+  const target = norm(q?.answer?.text || "");
+
+  state.q.built ??= [];
+  const builtText = state.q.built
+    .map(id => tiles.find(t => String(t.id)===String(id)))
+    .filter(Boolean).map(t => pickText(t)).join("");
+
+  setTop({
+    title: q?.prompt?.text || "كوّن الكلمة",
+    sub: hintFor("build_construct"),
+    lesson: state.lesson?.title || "—",
+    progress: progressText(),
+    type: "تكوين",
+    audioUrl: q?.prompt?.audioUrl || ""
+  });
+
+  const slotCount = Math.max(target.length || 0, state.q.built.length, 3);
+  const slots = Array.from({length: slotCount}).map((_,i)=>`
+    <div class="pill" style="min-width:56px; justify-content:center; font-size:var(--fs2); padding:10px 12px;">
+      ${esc(builtText[i]||" ")}
+    </div>
+  `).join("");
+
+  $("#stage").html(`
+    <div class="panelKid" id="buildWrap">
+      <p class="panelTitle">كلمة التكوين <small>كوّن الكلمة المطلوبة</small></p>
+
+      <div class="d-flex gap-2 flex-wrap justify-content-center p-3"
+           style="border-radius:22px;border:1px solid rgba(15,23,42,.10);background:rgba(255,255,255,.98);box-shadow:0 8px 14px rgba(15,23,42,.06);">
+        ${slots}
+      </div>
+
+      <div class="d-flex gap-2 flex-wrap justify-content-center mt-3">
+        <button class="btnKid btnSecondary px-3" id="buildBack" type="button">حذف</button>
+        <button class="btnKid btnSecondary px-3" id="buildClear" type="button">مسح</button>
+        <span class="pill">الناتج: <b>${esc(builtText||"—")}</b></span>
+      </div>
+
+      <div class="d-flex gap-2 flex-wrap justify-content-center mt-3" id="tiles">
+        ${tiles.map(t => `
+          <button class="btnKid btnSecondary" style="height:48px; min-width:64px;" type="button" data-tile="${esc(t.id)}">
+            ${esc(pickText(t) || t.id)}
+          </button>
+        `).join("")}
+      </div>
+
+      <div class="mt-3 text-center" style="color:rgba(15,23,42,.62);font-weight:900;line-height:1.7;">
+        الهدف: <b>${esc(target || "—")}</b>
+      </div>
+    </div>
+
+    ${footerControls()}
+  `);
+
+  $("#stage").off("click.tile").on("click.tile", "[data-tile]", function(){
+    state.q.built = state.q.built || [];
+    state.q.built.push($(this).attr("data-tile"));
+    render();
+  });
+  $("#stage").off("click.buildBack").on("click.buildBack", "#buildBack", function(){
+    state.q.built = state.q.built || [];
+    state.q.built.pop();
+    render();
+  });
+  $("#stage").off("click.buildClear").on("click.buildClear", "#buildClear", function(){
+    state.q.built = [];
+    render();
+  });
+
+  wireFooter();
+}
+
+/* Coloring */
+async function renderColoring(entry){
+  const q = entry.q;
+
+  setTop({
+    title: q?.prompt?.text || "تلوين",
+    sub: hintFor("coloring"),
+    lesson: state.lesson?.title || "—",
+    progress: progressText(),
+    type: "تلوين",
+    audioUrl: q?.prompt?.audioUrl || ""
+  });
+
+  const cw = Number(q?.canvas?.width  || 900);
+  const ch = Number(q?.canvas?.height || 520);
+
+  const baseUrl = String(q?.canvas?.baseImageUrl || "").trim();
+  const maskUrl = String(q?.canvas?.maskImageUrl || "").trim();
+  const hintUrl = String(q?.canvas?.targetHintImageUrl || "").trim();
+
+  const requiredCoverage = Number(q?.successCriteria?.coveragePercent ?? 0.6);
+
+  const palette = Array.isArray(q?.palette) && q.palette.length ? q.palette : [
+    "#111827","#ef4444","#f59e0b","#22c55e","#3b82f6","#a855f7","#ec4899","#06b6d4"
+  ];
+  const brushSizeDefault = Number(q?.brush?.size || 18);
+  const brushOpacityDefault = Number(q?.brush?.opacity || 1);
+
+  $("#stage").html(`
+    <div class="grid2_1">
+      <div class="panelKid">
+        <p class="panelTitle">منطقة التلوين <small>${baseUrl ? "لوّن فوق الشكل" : "تلوين حر"}</small></p>
+        <div style="position:relative;">
+          <canvas class="paintCanvas" id="paintBase" width="${cw}" height="${ch}"
+                  style="position:absolute; inset:0; z-index:1;"></canvas>
+
+          <canvas class="paintCanvas" id="paintHintLayer" width="${cw}" height="${ch}"
+                  style="position:absolute; inset:0; z-index:2; opacity:0; pointer-events:none;"></canvas>
+
+          <canvas class="paintCanvas" id="paintDraw" width="${cw}" height="${ch}"
+                  style="position:relative; z-index:3; background:transparent;"></canvas>
+        </div>
+      </div>
+
+      <div class="panelKid">
+        <p class="panelTitle">أدوات <small>اختر لونًا وحجمًا</small></p>
+
+        <div class="d-flex gap-2 flex-wrap" id="paintPalette"></div>
+
+        <div class="mt-3">
+          <div class="d-flex align-items-center justify-content-between">
+            <span class="pill">حجم الفرشاة</span>
+            <span class="pill" id="paintSizeVal">—</span>
+          </div>
+          <input class="form-range mt-2" id="paintSize" type="range" min="6" max="52" step="1" value="${brushSizeDefault}">
+        </div>
+
+        <div class="mt-3">
+          <div class="d-flex align-items-center justify-content-between">
+            <span class="pill">الشفافية</span>
+            <span class="pill" id="paintOpacityVal">—</span>
+          </div>
+          <input class="form-range mt-2" id="paintOpacity" type="range" min="0.2" max="1" step="0.05" value="${brushOpacityDefault}">
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap mt-3">
+          <button class="btnKid btnSecondary px-3" id="paintUndo" type="button">تراجع</button>
+          <button class="btnKid btnSecondary px-3" id="paintClear" type="button">مسح</button>
+          <button class="btnKid btnSecondary px-3" id="paintHint" type="button" ${hintUrl ? "" : "disabled"}>تلميح</button>
+        </div>
+
+        <div class="mt-3" style="color:rgba(15,23,42,.62);font-weight:900;line-height:1.7;">
+          شرط النجاح: تلوين داخل الشكل بنسبة <b>${Math.round(requiredCoverage*100)}%</b>.
+        </div>
+
+        ${footerControls()}
+      </div>
+    </div>
+  `);
+
+  wireFooter();
+
+  $("#paintPalette").html(
+    palette.map((c,i)=>`
+      <div class="swatch" data-color="${esc(c)}" data-selected="${i===0?"1":"0"}" style="background:${esc(c)}"></div>
+    `).join("")
+  );
+
+  const baseCanvas = $("#paintBase")[0];
+  const hintCanvas = $("#paintHintLayer")[0];
+  const drawCanvas = $("#paintDraw")[0];
+
+  const bctx = baseCanvas.getContext("2d", { willReadFrequently:true });
+  const hctx = hintCanvas.getContext("2d", { willReadFrequently:true });
+  const dctx = drawCanvas.getContext("2d", { willReadFrequently:true });
+
+  const maskC = document.createElement("canvas");
+  maskC.width = cw; maskC.height = ch;
+  const mctx = maskC.getContext("2d", { willReadFrequently:true });
+
+  bctx.clearRect(0,0,cw,ch);
+  bctx.fillStyle = "#ffffff";
+  bctx.fillRect(0,0,cw,ch);
+  hctx.clearRect(0,0,cw,ch);
+  dctx.clearRect(0,0,cw,ch);
+  mctx.clearRect(0,0,cw,ch);
+
+  try{ if(baseUrl){ const img = await loadImg(baseUrl); drawContain(bctx, img, 18); } }catch(_){}
+  try{ if(hintUrl){ const img = await loadImg(hintUrl); drawContain(hctx, img, 18); } }catch(_){}
+  try{
+    if(maskUrl){
+      const img = await loadImg(maskUrl);
+      drawContain(mctx, img, 18);
+    }else{
+      mctx.fillStyle = "rgba(0,0,0,1)";
+      mctx.fillRect(0,0,cw,ch);
+    }
+  }catch(_){
+    mctx.clearRect(0,0,cw,ch);
+    mctx.fillStyle = "rgba(0,0,0,1)";
+    mctx.fillRect(0,0,cw,ch);
+  }
+
+  state.paint = {
+    drawCtx: dctx,
+    maskCtx: mctx,
+    undo: [],
+    size: brushSizeDefault,
+    opacity: brushOpacityDefault,
+    color: palette[0],
+    requiredCoverage
+  };
+
+  function pushUndo(){
+    const img = dctx.getImageData(0,0,cw,ch);
+    state.paint.undo.push(img);
+    if(state.paint.undo.length > 20) state.paint.undo.shift();
+  }
+  pushUndo();
+
+  function updateLabels(){
+    $("#paintSizeVal").text(String(state.paint.size));
+    $("#paintOpacityVal").text(String(state.paint.opacity));
+  }
+  updateLabels();
+
+  $("#paintPalette").off("click").on("click", ".swatch", function(){
+    const c = $(this).attr("data-color");
+    state.paint.color = c;
+    $(".swatch").attr("data-selected","0");
+    $(this).attr("data-selected","1");
+  });
+
+  $("#paintSize").off("input").on("input", function(){
+    state.paint.size = Number(this.value);
+    updateLabels();
+  });
+  $("#paintOpacity").off("input").on("input", function(){
+    state.paint.opacity = Number(this.value);
+    updateLabels();
+  });
+
+  $("#paintUndo").off("click").on("click", function(){
+    const u = state.paint.undo;
+    if(u.length <= 1) return;
+    u.pop();
+    dctx.putImageData(u[u.length-1],0,0);
+  });
+
+  $("#paintClear").off("click").on("click", function(){
+    pushUndo();
+    dctx.clearRect(0,0,cw,ch);
+    pushUndo();
+  });
+
+  $("#paintHint").off(".hint");
+  $("#paintHint").on("mousedown.hint touchstart.hint", function(e){
+    if(!hintUrl) return;
+    e.preventDefault();
+    $("#paintHintLayer").css("opacity","0.85");
+  });
+  $(window).off(".hint");
+  $(window).on("mouseup.hint touchend.hint touchcancel.hint", function(){
+    $("#paintHintLayer").css("opacity","0");
+  });
+
+  installPointerDraw({
+    canvas: drawCanvas,
+    ctx: dctx,
+    getStrokeStyle: () => ({
+      color: state.paint.color,
+      size: state.paint.size,
+      opacity: state.paint.opacity,
+      composite: "source-over"
+    }),
+    onStrokeStart: () => pushUndo()
+  });
+}
+
+/* Trace */
+async function renderTrace(entry){
+  const q = entry.q;
+
+  setTop({
+    title: q?.prompt?.text || "كتابة",
+    sub: hintFor("trace_write"),
+    lesson: state.lesson?.title || "—",
+    progress: progressText(),
+    type: "كتابة وتتبع",
+    audioUrl: q?.prompt?.audioUrl || ""
+  });
+
+  const cw = Number(q?.canvas?.width  || 900);
+  const ch = Number(q?.canvas?.height || 520);
+
+  const traceText = String(q?.trace?.text || q?.traceText || q?.letter || "").trim()
+                 || String(q?.target?.text || "").trim()
+                 || "ا";
+
+  const svgUrl = String(q?.trace?.svgUrl || q?.target?.svgUrl || "").trim();
+
+  let minInkPixels = Number(q?.minInkPixels || 0);
+  const minInkPercent = Number(q?.successCriteria?.minInkPercent || 0);
+  if(!minInkPixels && minInkPercent){
+    minInkPixels = Math.floor((cw * ch) * minInkPercent);
+  }
+  if(!minInkPixels) minInkPixels = Math.floor((cw*ch) * 0.006);
+
+  $("#stage").html(`
+    <div class="grid2_1">
+      <div class="panelKid">
+        <p class="panelTitle">منطقة الكتابة <small>اكتب فوق القالب</small></p>
+        <div style="position:relative;">
+          <canvas class="traceCanvas" id="traceBase" width="${cw}" height="${ch}"
+                  style="position:absolute; inset:0; z-index:1;"></canvas>
+          <canvas class="traceCanvas" id="traceDraw" width="${cw}" height="${ch}"
+                  style="position:relative; z-index:2; background:transparent;"></canvas>
+        </div>
+      </div>
+
+      <div class="panelKid">
+        <p class="panelTitle">أدوات</p>
+
+        <div class="mt-3">
+          <div class="d-flex align-items-center justify-content-between">
+            <span class="pill">سمك القلم</span>
+            <span class="pill" id="traceSizeVal">—</span>
+          </div>
+          <input class="form-range mt-2" id="traceSize" type="range" min="6" max="44" step="1" value="18">
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap mt-3">
+          <button class="btnKid btnSecondary px-3" id="traceUndo" type="button">تراجع</button>
+          <button class="btnKid btnSecondary px-3" id="traceClear" type="button">مسح</button>
+        </div>
+
+        <div class="mt-3" style="color:rgba(15,23,42,.62);font-weight:900;line-height:1.7;">
+          شرط التحقق: وجود كتابة كافية على اللوحة.
+        </div>
+
+        ${footerControls()}
+      </div>
+    </div>
+  `);
+
+  wireFooter();
+
+  const base = $("#traceBase")[0];
+  const draw = $("#traceDraw")[0];
+
+  const bctx = base.getContext("2d", { willReadFrequently:true });
+  const dctx = draw.getContext("2d", { willReadFrequently:true });
+
+  bctx.clearRect(0,0,cw,ch);
+  bctx.fillStyle = "#ffffff";
+  bctx.fillRect(0,0,cw,ch);
+
+  try{
+    if(svgUrl){
+      await drawSvgToCanvas(bctx, svgUrl, cw, ch);
+    }else{
+      drawTemplateText(bctx, traceText);
+    }
+  }catch(_){
+    drawTemplateText(bctx, traceText);
+  }
+
+  dctx.clearRect(0,0,draw.width, draw.height);
+
+  state.trace = {
+    drawCtx: dctx,
+    undo: [],
+    minInkPixels,
+    size: 18
+  };
+
+  function pushUndo(){
+    const img = dctx.getImageData(0,0,draw.width, draw.height);
+    state.trace.undo.push(img);
+    if(state.trace.undo.length > 20) state.trace.undo.shift();
+  }
+  pushUndo();
+
+  function updateLabels(){ $("#traceSizeVal").text(String(state.trace.size)); }
+  updateLabels();
+
+  $("#traceSize").off("input").on("input", function(){
+    state.trace.size = Number(this.value);
+    updateLabels();
+  });
+
+  $("#traceUndo").off("click").on("click", function(){
+    const u = state.trace.undo;
+    if(u.length <= 1) return;
+    u.pop();
+    dctx.putImageData(u[u.length-1],0,0);
+  });
+
+  $("#traceClear").off("click").on("click", function(){
+    pushUndo();
+    dctx.clearRect(0,0,draw.width, draw.height);
+    pushUndo();
+  });
+
+  installPointerDraw({
+    canvas: draw,
+    ctx: dctx,
+    getStrokeStyle: () => ({
+      color: "rgba(59,130,246,0.95)",
+      size: state.trace.size,
+      opacity: 1,
+      composite: "source-over"
+    }),
+    onStrokeStart: () => pushUndo()
+  });
+}
+
+function renderUnsupported(entry){
+  setTop({
+    title:"نوع سؤال غير مدعوم",
+    sub:"تحقق من type داخل questionBank",
+    lesson:state.lesson?.title||"—",
+    progress:progressText(),
+    type:"تحذير",
+    audioUrl:""
+  });
+  $("#stage").html(`<div class="panelKid">هذا النوع غير مدعوم: <b>${esc(entry?.q?.type || "")}</b></div>`);
+}
+
+/* =========================
+  VALIDATION
+========================= */
+function validate(){
+  const entry = curEntry();
+  const q = entry?.q || {};
+  const type = String(q.type||"");
+
+  if(type === "multiple_choice" || type === "listen_choose"){
+    if(!state.q.selected){
+      feedback(false, "اختر إجابة أولًا", $("#stage"));
+      return;
+    }
+    const ok = String(state.q.selected) === String(q?.answer?.choiceId);
+    if(ok){
+      feedback(true, "إجابة صحيحة", $(`[data-choice="${CSS.escape(state.q.selected)}"]`));
+      setTimeout(nextQ, 520);
+    }else{
+      feedback(false, "جرّب مرة أخرى", $(`[data-choice="${CSS.escape(state.q.selected)}"]`));
+    }
+    return;
+  }
+
+  if(type === "match"){
+    const expected = Array.isArray(q.pairs)?q.pairs:[];
+    const got = state.q.pairs || {};
+    let ok = expected.length > 0;
+    for(const p of expected){
+      if(String(got[p.leftId]) !== String(p.rightId)){ ok=false; break; }
+    }
+    feedback(ok, ok ? "تطابق صحيح" : "بعض التطابقات غير صحيحة", $("#stage"));
+    if(ok) setTimeout(nextQ, 520);
+    return;
+  }
+
+  if(type === "drag_drop"){
+    const expected = Array.isArray(q.map) ? q.map
+                   : Array.isArray(q.answers) ? q.answers
+                   : [];
+    const got = state.q.assign || {};
+    let ok = expected.length > 0;
+    for(const a of expected){
+      const targetId = String(a.targetId ?? a.dropId);
+      const dragId   = String(a.dragId);
+      if(String(got[targetId]) !== dragId){ ok=false; break; }
+    }
+    feedback(ok, ok ? "توزيع صحيح" : "جرّب مرة أخرى", $("#stage"));
+    if(ok) setTimeout(nextQ, 520);
+    return;
+  }
+
+  if(type === "ordering"){
+    const expected = Array.isArray(q.answer?.orderedIds) ? q.answer.orderedIds.map(String) : [];
+    const got = (state.q.order||[]).map(String);
+    const ok = expected.length && expected.length === got.length && expected.every((v,i)=>v===got[i]);
+    feedback(ok, ok ? "ترتيب صحيح" : "الترتيب غير صحيح", $("#stage"));
+    if(ok) setTimeout(nextQ, 520);
+    return;
+  }
+
+  if(type === "classification"){
+    const expected = Array.isArray(q.answer?.map) ? q.answer.map
+                   : Array.isArray(q.answers) ? q.answers
+                   : [];
+    const got = state.q.catAssign || {};
+    let ok = expected.length > 0;
+    for(const a of expected){
+      const itemId = String(a.itemId);
+      const catId  = String(a.categoryId);
+      if(String(got[itemId]) !== catId){ ok=false; break; }
+    }
+    feedback(ok, ok ? "تصنيف صحيح" : "بعض العناصر في فئة خاطئة", $("#stage"));
+    if(ok) setTimeout(nextQ, 520);
+    return;
+  }
+
+  if(type === "build_construct"){
+    const tiles = Array.isArray(q.tiles)?q.tiles:[];
+    const target = norm(q?.answer?.text || "");
+    const built = (state.q.built||[])
+      .map(id => tiles.find(t => String(t.id)===String(id)))
+      .filter(Boolean).map(t=>pickText(t)).join("");
+    const ok = norm(built) === target;
+    feedback(ok, ok ? "الكلمة صحيحة" : "جرّب مرة أخرى", $("#stage"));
+    if(ok) setTimeout(nextQ, 520);
+    return;
+  }
+
+  if(type === "coloring"){
+    if(!state.paint?.drawCtx || !state.paint?.maskCtx){
+      feedback(false, "تعذر تحميل لوحة التلوين", $("#stage"));
+      return;
+    }
+    const pct = coverageFromMask(state.paint.drawCtx, state.paint.maskCtx);
+    const ok = pct >= Number(state.paint.requiredCoverage || 0.6);
+    feedback(ok, ok ? `ممتاز (${(pct*100).toFixed(0)}%)` : `لوّن أكثر (${(pct*100).toFixed(0)}%)`, $("#paintDraw"));
+    if(ok) setTimeout(nextQ, 520);
+    return;
+  }
+
+  if(type === "trace_write"){
+    if(!state.trace?.drawCtx){
+      feedback(false, "تعذر تحميل لوحة الكتابة", $("#stage"));
+      return;
+    }
+    const ink = countNonTransparentPixels(state.trace.drawCtx);
+    const ok = ink >= state.trace.minInkPixels;
+    feedback(ok, ok ? "كتابة ممتازة" : "اكتب أكثر فوق القالب", $("#traceDraw"));
+    if(ok) setTimeout(nextQ, 520);
+    return;
+  }
+
+  feedback(false, "هذا النوع غير مدعوم", $("#stage"));
+}
+
+/* =========================
+  MAIN RENDER SWITCH
+========================= */
+async function render(){
+  wireFooter();
+
+  if(!state.flow.length){
+    setTop({title:"لا توجد أسئلة", sub:"تحقق من questionBank", lesson:state.lesson?.title||"—", progress:"0/0", type:"—", audioUrl:""});
+    $("#stage").html(`<div class="panelKid">لا توجد أسئلة لهذا الدرس.</div>`);
+    return;
+  }
+
+  const entry = curEntry();
+  entry.q = resolveQuestion(entry);
+  const q = entry.q;
+  const type = String(q.type||"");
+
+  if(type === "multiple_choice" || type === "listen_choose") return renderChoice(entry);
+  if(type === "match") return renderMatch(entry);
+  if(type === "drag_drop") return renderDragDrop(entry);
+  if(type === "ordering") return renderOrdering(entry);
+  if(type === "classification") return renderClassification(entry);
+  if(type === "build_construct") return renderBuild(entry);
+  if(type === "coloring") return await renderColoring(entry);
+  if(type === "trace_write") return await renderTrace(entry);
+  return renderUnsupported(entry);
+}
+
+/* =========================
+  LOAD
+========================= */
+async function load(){
+  try{
+    resetQ();
+    $("#stage").text("جاري التحميل...");
+
+    const res = await fetch(DATA_FILE, {cache:"no-store"});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    const level = findBy(data?.levels, "levelId", levelId);
+    if(!level) throw new Error(`لا يوجد levelId=${levelId}`);
+
+    const {sec, les} = findLesson(level, sectionId, lessonId);
+    if(!sec) throw new Error(`لا يوجد section=${sectionId}`);
+    if(!les) throw new Error(`لا يوجد lesson=${lessonId}`);
+
+    state.data=data; state.level=level; state.section=sec; state.lesson=les;
+    state.flow = buildFlow(les);
+    state.idx = 0;
+
+    await render();
+  }catch(e){
+    setTop({title:"تعذر التحميل", sub:"تأكد من sections-lessens.json والمسار", lesson:"—", progress:"—", type:"⚠️", audioUrl:""});
+    $("#stage").html(`
+      <div class="panelKid">
+        <div style="font-weight:1000;">تفاصيل الخطأ</div>
+        <div class="mt-2" style="color:rgba(15,23,42,.65);font-weight:900;line-height:1.7;">${esc(e?.message||"")}</div>
+        <div class="d-flex gap-2 flex-wrap mt-3">
+          <button class="btnKid btnPrimary px-3" id="retry" type="button">🔄 حاول مرة أخرى</button>
+        </div>
+      </div>
+    `);
+    $("#retry").off("click").on("click", load);
+  }
+}
+
+/* =========================
+  INIT
+========================= */
+load();
+</script>
+</body>
+</html>

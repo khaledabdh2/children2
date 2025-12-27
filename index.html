@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>لوحة الطفل — Dashboard</title>
+  <style>
+    :root{
+      --bg:#F7FBFF;
+      --surface:#ffffff;
+      --text:#1F2A44;
+      --muted:#6B7280;
+      --primary:#2F80ED;
+      --success:#27AE60;
+      --warning:#F2C94C;
+
+      --r:18px;
+      --shadow:0 12px 26px rgba(31,42,68,.12);
+      --shadow2:0 6px 14px rgba(31,42,68,.10);
+      --ring:0 0 0 4px rgba(47,128,237,.18);
+
+      --max:1180px;
+      --gap:16px;
+      --pad:18px;
+      --leftColW: 420px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif;
+      background:
+        radial-gradient(900px 520px at 10% -10%, rgba(86,204,242,.30), transparent 60%),
+        radial-gradient(900px 520px at 95% 0%, rgba(187,107,217,.24), transparent 55%),
+        radial-gradient(900px 520px at 50% 110%, rgba(111,207,151,.22), transparent 60%),
+        var(--bg);
+      color:var(--text);
+      overflow-x:hidden;
+    }
+
+    /* blobs */
+    .blob{
+      position:fixed;
+      width:320px;height:320px;
+      border-radius:999px;
+      opacity:.18;
+      pointer-events:none;
+      z-index:0;
+      animation:float 10s ease-in-out infinite;
+    }
+    .blob.b1{background:rgba(47,128,237,.65);top:-100px;right:-120px;}
+    .blob.b2{background:rgba(39,174,96,.60);bottom:-120px;left:-130px;animation-duration:12s;}
+    .blob.b3{background:rgba(242,201,76,.70);top:35%;left:-140px;animation-duration:14s;}
+    @keyframes float{0%,100%{transform:translate(0,0)}50%{transform:translate(14px,22px)}}
+
+    /* shell */
+    .app-shell{position:relative;z-index:1;min-height:100vh;display:flex;}
+    .container{
+      width:100%;
+      max-width:var(--max);
+      margin:0 auto;
+      padding:var(--pad);
+      display:flex;
+      flex-direction:column;
+      gap:var(--gap);
+      min-height:100vh;
+    }
+    .layout{
+      flex:1;
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+      gap:var(--gap);
+    }
+
+    /* header */
+    .header{
+      display:grid;
+      grid-template-columns: var(--leftColW) 1fr;
+      gap:var(--gap);
+      align-items:stretch;
+    }
+    .header > .welcome,
+    .header > .profileBox{height:100%}
+
+    @media (max-width:980px){
+      .header{grid-template-columns:1fr;}
+      .header > .welcome,
+      .header > .profileBox{height:auto;}
+    }
+
+    /* welcome */
+    .welcome{
+      background:rgba(255,255,255,.85);
+      border:1px solid rgba(31,42,68,.08);
+      box-shadow:var(--shadow);
+      border-radius:calc(var(--r) + 12px);
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .welcome h1{margin:0;font-size:22px;font-weight:1000}
+    .welcome p{
+      margin:0;
+      font-size:13px;
+      font-weight:900;
+      color:var(--muted);
+      line-height:1.6;
+      max-width:46ch;
+    }
+
+    /* quick buttons */
+    .quickRow{display:flex;gap:10px;flex-wrap:wrap}
+    .quickBtn{
+      border:none;
+      cursor:pointer;
+      border-radius:14px;
+      padding:8px 10px;
+      font-weight:1000;
+      background:rgba(47,128,237,.12);
+      color:var(--primary);
+      border:1px solid rgba(47,128,237,.18);
+      box-shadow:var(--shadow2);
+      display:flex;
+      align-items:center;
+      gap:8px;
+      transition:transform .12s ease, box-shadow .12s ease;
+    }
+    .quickBtn:hover{transform:translateY(-1px);box-shadow:0 14px 26px rgba(31,42,68,.12)}
+    .quickBtn:active{transform:scale(.99)}
+    .quickBtn.secondary{background:rgba(31,42,68,.06);color:var(--text)}
+    .quickBtn .i{
+      width:30px;height:30px;
+      border-radius:12px;
+      display:grid;place-items:center;
+      background:#fff;
+      border:1px solid rgba(31,42,68,.10);
+    }
+
+    /* profile */
+    .profileBox{
+      background:rgba(255,255,255,.88);
+      border:1px solid rgba(31,42,68,.08);
+      box-shadow:var(--shadow);
+      border-radius:calc(var(--r) + 12px);
+      padding:12px;
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:12px;
+    }
+    .profileLeft{display:flex;align-items:center;gap:12px;min-width:0}
+    .avatar{
+      width:64px;height:64px;
+      border-radius:22px;
+      display:grid;place-items:center;
+      font-size:30px;
+      background:linear-gradient(135deg,rgba(47,128,237,.20),rgba(111,207,151,.16));
+      border:1px solid rgba(31,42,68,.10);
+      box-shadow:var(--shadow2);
+    }
+    .profileMeta{min-width:0;display:flex;flex-direction:column;gap:8px}
+    .childName{font-size:17px;font-weight:1000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .badgeRow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .badgeIcon{
+      width:34px;height:34px;
+      border-radius:14px;
+      display:grid;place-items:center;
+      background:rgba(242,201,76,.20);
+      border:1px solid rgba(31,42,68,.10);
+      box-shadow:var(--shadow2);
+    }
+    .badgeName{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(31,42,68,.05);
+      border:1px solid rgba(31,42,68,.08);
+      font-weight:900;
+      white-space:nowrap;
+    }
+
+    .profileRight{
+      display:flex;
+      flex-direction:row;
+      gap:10px;
+      align-items:stretch;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+    @media (max-width:520px){.profileRight{flex-wrap:wrap;}}
+
+    .tabPill{
+      border:none;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      padding:8px 10px;
+      border-radius:14px;
+      background:rgba(255,255,255,.92);
+      border:1px solid rgba(31,42,68,.10);
+      box-shadow:var(--shadow2);
+      font-weight:1000;
+      flex:1 1 170px;
+      min-width:170px;
+      transition:transform .12s ease, box-shadow .12s ease;
+    }
+    .tabPill:hover{transform:translateY(-1px);box-shadow:0 14px 26px rgba(31,42,68,.12)}
+    .tabPill:active{transform:scale(.99)}
+    .tabPill:focus{outline:none;box-shadow:var(--shadow2),var(--ring)}
+    .tabPill .left{display:flex;align-items:center;gap:8px;min-width:0}
+    .tabPill .ico{
+      width:30px;height:30px;
+      border-radius:12px;
+      display:grid;place-items:center;
+      background:rgba(47,128,237,.10);
+      border:1px solid rgba(31,42,68,.08);
+      font-size:15px;
+      flex:0 0 auto;
+    }
+    .tabPill.groups .ico{background:rgba(111,207,151,.12);}
+    .tabPill .txt{display:flex;flex-direction:column;gap:1px;min-width:0}
+    .tabPill .txt small{font-size:10px;color:var(--muted);font-weight:900}
+    .tabPill .chev{font-size:14px;color:rgba(31,42,68,.45);font-weight:1000}
+
+    /* content + cards */
+    .content{
+      flex:1;
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+      gap:var(--gap);
+    }
+    .cards-grid{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(220px, 1fr));
+      gap:var(--gap);
+      align-items:stretch;
+    }
+    @media (max-width:1100px){
+      .cards-grid{grid-template-columns:repeat(2, minmax(220px, 1fr));}
+    }
+    @media (max-width:560px){
+      .cards-grid{grid-template-columns:1fr;}
+    }
+
+    .card{
+      background:rgba(255,255,255,.92);
+      border:1px solid rgba(31,42,68,.10);
+      box-shadow:var(--shadow);
+      border-radius:22px;
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      cursor:pointer;
+      user-select:none;
+      transition:transform .14s ease, box-shadow .14s ease;
+      outline:none;
+      min-height:190px;
+    }
+    .card:hover{transform:translateY(-2px);box-shadow:0 18px 36px rgba(31,42,68,.14)}
+    .card:active{transform:scale(.995)}
+    .card:focus{box-shadow:var(--shadow), var(--ring)}
+
+    .cardTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .logo{
+      width:52px;height:52px;
+      border-radius:18px;
+      border:1px solid rgba(31,42,68,.10);
+      display:grid;place-items:center;
+      font-size:22px;
+      box-shadow:var(--shadow2);
+    }
+    .tag{
+      font-size:12px;
+      font-weight:950;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(31,42,68,.05);
+      border:1px solid rgba(31,42,68,.08);
+      color:rgba(31,42,68,.70);
+      white-space:nowrap;
+    }
+    .cardTitle{margin:0;font-size:16px;font-weight:1000}
+    .cardDesc{
+      margin:0;
+      color:var(--muted);
+      font-weight:900;
+      font-size:12.5px;
+      line-height:1.7;
+    }
+
+    .cardBottom{
+      margin-top:auto;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .progress{
+      height:10px;
+      border-radius:999px;
+      background:rgba(31,42,68,.08);
+      border:1px solid rgba(31,42,68,.08);
+      overflow:hidden;
+    }
+    .progress > div{
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(47,128,237,.95), rgba(111,207,151,.90));
+      width:0%;
+      transition:width .2s ease;
+    }
+    .go{
+      border:none;
+      cursor:pointer;
+      border-radius:14px;
+      padding:10px 12px;
+      font-weight:1000;
+      background:rgba(47,128,237,.12);
+      color:var(--primary);
+      border:1px solid rgba(47,128,237,.18);
+      box-shadow:var(--shadow2);
+      transition:transform .12s ease, box-shadow .12s ease;
+      align-self:flex-start;
+    }
+    .go:hover{transform:translateY(-1px);box-shadow:0 14px 26px rgba(31,42,68,.12)}
+    .go:active{transform:scale(.99)}
+
+    /* toast */
+    .toast{
+      position:fixed;
+      bottom:16px;
+      left:16px;
+      right:16px;
+      max-width:var(--max);
+      margin:0 auto;
+      background:rgba(255,255,255,.92);
+      border:1px solid rgba(31,42,68,.10);
+      box-shadow:var(--shadow);
+      border-radius:16px;
+      padding:12px 14px;
+      display:none;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      backdrop-filter:blur(10px);
+      z-index:30;
+    }
+    .toast.show{display:flex}
+    .toast b{font-weight:1000}
+    .toast span{color:var(--muted);font-weight:900}
+    .toast button{
+      border:none;
+      background:rgba(31,42,68,.06);
+      border:1px solid rgba(31,42,68,.10);
+      border-radius:14px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-weight:950;
+      transition:transform .12s ease, box-shadow .12s ease;
+    }
+    .toast button:hover{transform:translateY(-1px);box-shadow:0 14px 26px rgba(31,42,68,.12)}
+    .toast button:active{transform:scale(.99)}
+  </style>
+</head>
+
+<body>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+
+  <main class="app-shell">
+    <div class="container">
+      <div class="layout">
+        <header class="header">
+          <section class="welcome" aria-label="رسالة ترحيب">
+            <div>
+              <h1 id="welcomeTitle">مرحبًا 👋</h1>
+              <p id="welcomeSubtitle">اختر مستوى لتبدأ اللعب والتعلم. اضغط على أي بطاقة لتذهب إلى صفحة القسم.</p>
+            </div>
+
+            <div class="quickRow">
+              <button class="quickBtn" id="resumeBtn" type="button">
+                <span class="i">▶️</span> أكمل من حيث توقفت
+              </button>
+              <button class="quickBtn secondary" id="printBtn" type="button">
+                <span class="i">🖨️</span> أوراق عمل
+              </button>
+            </div>
+          </section>
+
+          <section class="profileBox" aria-label="معلومات الطفل">
+            <div class="profileLeft">
+              <div class="avatar" id="avatar">👧</div>
+              <div class="profileMeta">
+                <div class="childName" id="childName">سارة</div>
+                <div class="badgeRow">
+                  <div class="badgeIcon" id="badgeIcon">🏅</div>
+                  <div class="badgeName" id="badgeName">شارة البداية</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="profileRight">
+              <button class="tabPill" id="starsTab" type="button" aria-label="النجوم">
+                <div class="left">
+                  <div class="ico">⭐</div>
+                  <div class="txt">
+                    <div><span id="starsNo">12</span> نجمة</div>
+                    <small>رصيدي</small>
+                  </div>
+                </div>
+                <div class="chev">›</div>
+              </button>
+
+              <button class="tabPill groups" id="groupsTab" type="button" aria-label="المجموعات">
+                <div class="left">
+                  <div class="ico">👨‍👩‍👧‍👦</div>
+                  <div class="txt">
+                    <div><span id="groupsNo">2</span> مجموعات</div>
+                    <small>أصدقائي</small>
+                  </div>
+                </div>
+                <div class="chev">›</div>
+              </button>
+            </div>
+          </section>
+        </header>
+
+        <section class="content">
+          <div class="cards-grid" id="levelsGrid"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <div>
+      <b id="toastTitle">الانتقال</b><br/>
+      <span id="toastMsg">جاري فتح الصفحة…</span>
+    </div>
+    <button type="button" id="toastClose">إغلاق</button>
+  </div>
+<!-- 1) DASHBOARD (dashboard.html)
+     Change only the navigation so it passes the levelId in the URL:
+     sections.html?level=<levelId>
+-->
+<script>
+  const CONTENT = {
+    // ...
+    levels: [
+      {
+        levelId: "preliminary",
+        name: "Pre-Elementary",
+        tag: "تمهيدي",
+        desc: "تعرّف على الحروف والأرقام والألوان بطريقة سهلة جدًا.",
+        logo: "🧸",
+        logoBg: "rgba(242,201,76,.18)",
+        progress: 20,
+        targetPage: "sections.html" // the page you pasted (أقسام المستوى)
+      },
+      {
+        levelId: "basic",
+        name: "Basic",
+        tag: "أساسي",
+        desc: "تمارين تفاعلية وفلاش كاردز للحروف والأرقام والأشكال.",
+        logo: "📚",
+        logoBg: "rgba(47,128,237,.14)",
+        progress: 45,
+        targetPage: "sections.html"
+      },
+      {
+        levelId: "intermediate",
+        name: "Intermediate",
+        tag: "متوسط",
+        desc: "كلمات قصيرة وحساب بسيط وقصص سمعية ممتعة.",
+        logo: "🧠",
+        logoBg: "rgba(111,207,151,.16)",
+        progress: 0,
+        targetPage: "sections.html"
+      },
+      {
+        levelId: "advanced",
+        name: "Advanced",
+        tag: "متقدم",
+        desc: "قراءة جمل وحساب حتى 50 وتفكير منطقي.",
+        logo: "🚀",
+        logoBg: "rgba(187,107,217,.16)",
+        progress: 0,
+        targetPage: "sections.html"
+      }
+    ]
+  };
+
+  function renderLevels(){
+    const grid = document.querySelector("#levelsGrid");
+    grid.innerHTML = "";
+
+    CONTENT.levels.forEach(L=>{
+      const card = document.createElement("div");
+      card.className = "card";
+      card.tabIndex = 0;
+
+      // IMPORTANT: pass levelId in URL
+      const url = `${L.targetPage}?level=${encodeURIComponent(L.levelId)}`;
+
+      card.innerHTML = `
+        <div class="cardTop">
+          <div class="logo" style="background:${L.logoBg}">${L.logo}</div>
+          <div class="tag">${L.tag}</div>
+        </div>
+
+        <div class="cardMid">
+          <h3 class="cardTitle">${L.name}</h3>
+          <p class="cardDesc">${L.desc}</p>
+        </div>
+
+        <div class="cardBottom">
+          <div class="progress" aria-label="التقدم"><div style="width:${L.progress}%"></div></div>
+          <button class="go" type="button">${L.progress > 0 ? "تابع ➜" : "ابدأ ➜"}</button>
+        </div>
+      `;
+
+      const navigate = () => {
+        // (optional toast if you have it)
+        window.location.href = url;
+      };
+
+      card.addEventListener("click", navigate);
+      card.querySelector(".go").addEventListener("click", (e)=>{ e.stopPropagation(); navigate(); });
+      card.addEventListener("keydown", (e)=>{
+        if (e.key === "Enter" || e.key === " "){ e.preventDefault(); navigate(); }
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  renderLevels();
+</script>

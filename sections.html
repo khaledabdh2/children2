@@ -1,0 +1,692 @@
+
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>أقسام المستوى</title>
+
+  <!-- Use the updated CSS you pasted (children-style.css) -->
+  <link rel="stylesheet" href="children-style.css"/>
+
+  <style>
+    /* Page-only tiny tweaks (optional) */
+    .pillRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  </style>
+</head>
+
+<body>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+
+  <main class="app-shell">
+    <div class="container">
+      <div class="layout">
+
+        <header class="header">
+          <section class="welcome" aria-label="رسالة ترحيب">
+            <div>
+              <h1 id="welcomeTitle">أقسام المستوى</h1>
+              <p id="welcomeSubtitle">اختر قسمًا ثم درسًا: فيديو → فلاش كارد → أسئلة</p>
+            </div>
+            <div class="quickRow">
+              <button class="quickBtn secondary" id="backBtn" type="button"><span class="i">⬅️</span> رجوع</button>
+              <button class="quickBtn" id="homeBtn" type="button"><span class="i">🏠</span> لوحة التحكم</button>
+            </div>
+          </section>
+
+          <section class="profileBox" aria-label="معلومات الطفل">
+            <div class="profileLeft">
+              <div class="avatar" id="avatar">👧</div>
+              <div class="profileMeta">
+                <div class="childName" id="childName">سارة</div>
+                <div class="badgeRow">
+                  <div class="badgeIcon" id="badgeIcon">🏅</div>
+                  <div class="badgeName" id="badgeName">شارة البداية</div>
+                </div>
+              </div>
+            </div>
+            <div class="profileRight">
+              <button class="tabPill" id="starsTab" type="button" aria-label="النجوم">
+                <div class="left">
+                  <div class="ico">⭐</div>
+                  <div class="txt">
+                    <div><span id="starsNo">12</span> نجمة</div>
+                    <small>رصيدي</small>
+                  </div>
+                </div>
+                <div class="chev">›</div>
+              </button>
+
+              <button class="tabPill groups" id="groupsTab" type="button" aria-label="المجموعات">
+                <div class="left">
+                  <div class="ico">👨‍👩‍👧‍👦</div>
+                  <div class="txt">
+                    <div><span id="groupsNo">0</span> مجموعات</div>
+                    <small>أصدقائي</small>
+                  </div>
+                </div>
+                <div class="chev">›</div>
+              </button>
+            </div>
+          </section>
+        </header>
+
+        <section class="content">
+          <div class="split">
+
+            <aside class="pane" aria-label="الأقسام والدروس" id="leftPane">
+              <div class="paneHead">
+                <div class="paneTitle"><span class="miniDot"></span><span id="leftTitle">الأقسام</span></div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                  <button class="miniBtn primary" id="reloadBtn" type="button">تحديث</button>
+                  <button class="miniBtn" id="groupsViewBtn" type="button">المجموعات</button>
+                  <button class="miniBtn" id="lessonsViewBtn" type="button" style="display:none;">الدروس</button>
+                </div>
+              </div>
+
+              <div class="sectionsWrap" id="sectionsList"></div>
+              <div class="sectionsWrap" id="groupsList" style="display:none;"></div>
+
+              <div class="lessonsPopup" id="lessonsPopup" aria-hidden="true">
+                <div class="ddPopup" role="dialog" aria-label="اختر درسًا">
+                  <div class="ddPopHead">
+                    <div class="ddPopTitle">
+                      <span class="ddPopIcon">📘</span>
+                      <div class="ddPopText">
+                        <div class="t1" id="popupTitle">اختر الدرس</div>
+                        <div class="t2" id="popupSub">اضغط على درس للاختيار</div>
+                      </div>
+                    </div>
+
+                    <div class="ddHeadBtns">
+                      <button class="miniBtn" id="popupAllSectionsBtn" type="button">عرض كل الأقسام</button>
+                      <button class="ddCloseBtn" id="ddCloseBtn" type="button" aria-label="إغلاق">✕</button>
+                    </div>
+                  </div>
+
+                  <div class="ddList" id="ddList" role="listbox" aria-label="قائمة الدروس"></div>
+                </div>
+              </div>
+            </aside>
+
+            <section class="pane viewerBox" aria-label="عارض المحتوى">
+              <div class="viewerTop">
+                <div class="lessonTitleRow">
+                  <span class="miniDot"></span>
+                  <span id="activeLessonTitle">اختر درسًا</span>
+                  <span class="lessonBadge" id="activeLessonDesc">—</span>
+                </div>
+
+                <div class="modeTabs">
+                  <button class="modeBtn active" id="btnVideo" type="button" disabled>
+                    <span>🎬</span><span>الفيديو</span>
+                  </button>
+                  <button class="modeBtn" id="btnFlash" type="button" disabled>
+                    <span>🃏</span><span>فلاش كارد</span>
+                  </button>
+                  <button class="modeBtn" id="btnQuestions" type="button" disabled>
+                    <span>🧩</span><span>الأسئلة</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="viewer" id="viewer">
+                <div class="viewerScroll" style="color:var(--muted);font-weight:900;line-height:1.8;">
+                  اختر قسمًا ثم درسًا لعرض المحتوى.
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <div>
+      <b id="toastTitle">تنبيه</b><br/>
+      <span id="toastMsg">...</span>
+    </div>
+    <button type="button" id="toastClose">إغلاق</button>
+  </div>
+
+```html
+<script>
+/* =========================================================
+  0) CONFIG + URL PARAMS (NO FETCH IF NO ?level=...)
+========================================================= */
+const DATA_FILE = "sections-lessens.json";
+const QUESTIONS_PAGE = "questions.html";
+
+const urlParams = new URL(location.href).searchParams;
+const levelIdRaw = urlParams.get("level");              // required
+const levelId = levelIdRaw ? levelIdRaw.toLowerCase() : null;
+
+/* =========================================================
+  1) DOM HELPERS
+========================================================= */
+const $ = (s, r = document) => r.querySelector(s);
+
+function esc(s) {
+  return String(s ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+/* =========================================================
+  2) TOAST
+========================================================= */
+function showToast(title, msg) {
+  $("#toastTitle").textContent = title;
+  $("#toastMsg").textContent = msg;
+  $("#toast").classList.add("show");
+}
+function hideToast() {
+  $("#toast").classList.remove("show");
+}
+$("#toastClose")?.addEventListener("click", hideToast);
+
+/* =========================================================
+  3) HEADER / CHILD PROFILE (DEMO)
+========================================================= */
+const CHILD = {
+  name: "سارة",
+  avatarEmoji: "👧",
+  badge: { iconEmoji: "🏅", name: "شارة البداية" },
+  stars: 12
+};
+(function renderShellHeader() {
+  $("#childName").textContent = CHILD.name;
+  $("#avatar").textContent = CHILD.avatarEmoji;
+  $("#badgeIcon").textContent = CHILD.badge.iconEmoji;
+  $("#badgeName").textContent = CHILD.badge.name;
+  $("#starsNo").textContent = CHILD.stars;
+})();
+
+/* =========================================================
+  4) APP STATE
+========================================================= */
+let DATA = null;
+let LEVEL = null;
+
+let SECTIONS = [];
+let ACTIVE_SECTION = null;
+let ACTIVE_LESSON = null;
+
+let activeMode = "video"; // "video" | "flash"
+
+// Flash state
+let FLASH_CARDS = [];
+let flashIndex = 0;
+let flashFlipped = false;
+
+// Single audio channel
+const audio = new Audio();
+
+/* =========================================================
+  5) AUDIO + SPEAK (TTS)
+========================================================= */
+function getAudioUrl(obj) {
+  return obj?.audioUrl || obj?.soundUrl || "";
+}
+function playSound(url) {
+  if (!url) return showToast("تنبيه", "لا يوجد ملف صوت");
+  audio.pause();
+  audio.src = url;
+  audio.currentTime = 0;
+  audio.play().catch(() => showToast("تنبيه", "تعذر تشغيل الصوت"));
+}
+
+function speakArabic(text) {
+  const t = String(text || "").trim();
+  if (!t) return;
+  if (!("speechSynthesis" in window)) return showToast("تنبيه", "المتصفح لا يدعم قراءة النص.");
+
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t);
+    const voices = window.speechSynthesis.getVoices?.() || [];
+    const ar = voices.find(v => (v.lang || "").toLowerCase().startsWith("ar"));
+    if (ar) u.voice = ar;
+    u.lang = ar?.lang || "ar";
+    u.rate = 0.95;
+    u.pitch = 1.0;
+    window.speechSynthesis.speak(u);
+  } catch {
+    showToast("تنبيه", "تعذر تشغيل قراءة النص.");
+  }
+}
+if ("speechSynthesis" in window) {
+  window.speechSynthesis.onvoiceschanged = () => {};
+}
+
+/* =========================================================
+  6) MODE BUTTONS + VIEW SWITCH
+========================================================= */
+function enableModeButtons(on) {
+  $("#btnVideo").disabled = !on;
+  $("#btnFlash").disabled = !on;
+  $("#btnQuestions").disabled = !on;
+}
+
+function setMode(mode) {
+  activeMode = mode;
+
+  $("#btnVideo").classList.toggle("active", mode === "video");
+  $("#btnFlash").classList.toggle("active", mode === "flash");
+  $("#btnQuestions").classList.remove("active");
+
+  if (!ACTIVE_LESSON) {
+    $("#viewer").innerHTML =
+      `<div class="viewerScroll" style="color:var(--muted);font-weight:900;line-height:1.8;">اختر درسًا أولاً.</div>`;
+    return;
+  }
+
+  renderViewer();
+}
+
+$("#btnVideo")?.addEventListener("click", () => setMode("video"));
+$("#btnFlash")?.addEventListener("click", () => setMode("flash"));
+
+$("#btnQuestions")?.addEventListener("click", () => {
+  if (!levelId || !ACTIVE_SECTION || !ACTIVE_LESSON) return;
+
+  const url =
+    `${QUESTIONS_PAGE}?level=${encodeURIComponent(levelId)}` +
+    `&section=${encodeURIComponent(ACTIVE_SECTION.sectionId)}` +
+    `&lesson=${encodeURIComponent(ACTIVE_LESSON.lessonId)}`;
+
+  window.location.href = url;
+});
+
+/* =========================================================
+  7) POPUP NAV (SECTIONS -> LESSONS)
+========================================================= */
+function showPopupOnly() {
+  $("#lessonsPopup").classList.add("show");
+  $("#lessonsPopup").setAttribute("aria-hidden", "false");
+  setTimeout(() => $("#ddCloseBtn")?.focus(), 0);
+}
+function hidePopup() {
+  $("#lessonsPopup").classList.remove("show");
+  $("#lessonsPopup").setAttribute("aria-hidden", "true");
+}
+$("#ddCloseBtn")?.addEventListener("click", hidePopup);
+$("#popupAllSectionsBtn")?.addEventListener("click", hidePopup);
+
+function renderSectionsList() {
+  $("#sectionsList").innerHTML = "";
+
+  if (!SECTIONS.length) {
+    $("#sectionsList").innerHTML =
+      `<div class="viewerScroll" style="color:var(--muted);font-weight:900;line-height:1.8;">لا توجد أقسام.</div>`;
+    return;
+  }
+
+  SECTIONS.forEach(sec => {
+    const el = document.createElement("div");
+    el.className = "sectionItem";
+    el.tabIndex = 0;
+    el.innerHTML = `
+      <div class="sLeft">
+        <div class="sIcon">${sec.sectionIcon || "📚"}</div>
+        <div class="sTxt">
+          <div class="sTitle">${esc(sec.sectionTitle || "قسم")}</div>
+          <div class="sDesc">${esc(sec.sectionDesc || "")}</div>
+        </div>
+      </div>
+      <div class="chev">›</div>
+    `;
+
+    const open = () => selectSection(sec.sectionId);
+    el.addEventListener("click", open);
+    el.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        open();
+      }
+    });
+
+    $("#sectionsList").appendChild(el);
+  });
+}
+
+function buildLessonsPopup(sec) {
+  const lessons = Array.isArray(sec.lessons) ? sec.lessons : [];
+
+  $("#ddList").innerHTML = "";
+  $("#popupTitle").textContent = sec.sectionTitle || "الدروس";
+  $("#popupSub").textContent = lessons.length ? "اضغط على درس للاختيار" : "لا توجد دروس";
+
+  lessons.forEach((L, i) => {
+    const item = document.createElement("div");
+    item.className = "ddItem";
+    item.tabIndex = 0;
+    item.dataset.id = L.lessonId;
+    item.setAttribute("role", "option");
+
+    item.innerHTML = `
+      <div class="ddItemLeft">
+        <div class="ddItemTitle">${i + 1} — ${esc(L.title || "درس")}</div>
+        <div class="ddItemDesc">${esc(L.desc || "اضغط للاختيار")}</div>
+      </div>
+      <div class="ddItemIcon">▶</div>
+    `;
+
+    const choose = () => selectLesson(L.lessonId);
+    item.addEventListener("click", choose);
+    item.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        choose();
+      }
+    });
+
+    $("#ddList").appendChild(item);
+  });
+
+  return lessons;
+}
+
+function selectSection(sectionId) {
+  const sec = SECTIONS.find(s => s.sectionId === sectionId);
+  if (!sec) return showToast("تنبيه", "القسم غير موجود");
+
+  ACTIVE_SECTION = sec;
+  ACTIVE_LESSON = null;
+
+  const lessons = buildLessonsPopup(sec);
+  showPopupOnly();
+
+  if (lessons.length) selectLesson(lessons[0].lessonId);
+}
+
+/* =========================================================
+  8) LESSON SELECT
+========================================================= */
+function highlightActiveLessonInPopup() {
+  document.querySelectorAll("#ddList .ddItem").forEach(el => {
+    const isActive = el.dataset.id === (ACTIVE_LESSON?.lessonId || "");
+    el.classList.toggle("active", isActive);
+    el.style.borderColor = isActive ? "rgba(47,128,237,.55)" : "rgba(31,42,68,.10)";
+    el.style.background = isActive ? "rgba(47,128,237,.10)" : "rgba(255,255,255,.92)";
+  });
+}
+
+function selectLesson(lessonId) {
+  const L = (ACTIVE_SECTION?.lessons || []).find(x => x.lessonId === lessonId);
+  if (!L) return showToast("تنبيه", "الدرس غير موجود");
+
+  ACTIVE_LESSON = L;
+
+  $("#activeLessonTitle").textContent = L.title || "درس";
+  $("#activeLessonDesc").textContent = L.desc || "—";
+
+  prepareFlashcardsForLesson(L);
+
+  enableModeButtons(true);
+  setMode("video");
+
+  highlightActiveLessonInPopup();
+}
+
+/* =========================================================
+  9) VIEWER DISPATCH
+========================================================= */
+function renderViewer() {
+  if (activeMode === "video") return renderVideoView();
+  return renderFlashView();
+}
+
+/* =========================================================
+  10) VIDEO
+========================================================= */
+function renderVideoView() {
+  const url = ACTIVE_LESSON?.videoUrl;
+  if (!url) {
+    $("#viewer").innerHTML =
+      `<div class="viewerScroll" style="color:var(--muted);font-weight:900;line-height:1.8;">لا يوجد فيديو لهذا الدرس.</div>`;
+    return;
+  }
+
+  $("#viewer").innerHTML = `
+    <div class="videoWrap">
+      <video controls preload="metadata" playsinline src="${esc(url)}"></video>
+    </div>
+  `;
+}
+
+/* =========================================================
+  11) FLASHCARDS
+========================================================= */
+function prepareFlashcardsForLesson(lesson) {
+  const items = Array.isArray(lesson?.items) ? lesson.items : [];
+  FLASH_CARDS = items
+    .filter(it => it && (it.front || it.back))
+    .map(it => ({
+      itemId: it.itemId,
+      front: it.front || {},
+      back: it.back || {}
+    }));
+
+  flashIndex = 0;
+  flashFlipped = false;
+}
+
+function renderFlashView() {
+  if (!FLASH_CARDS.length) {
+    $("#viewer").innerHTML =
+      `<div class="viewerScroll" style="color:var(--muted);font-weight:900;line-height:1.8;">لا توجد فلاش كارد لهذا الدرس.</div>`;
+    return;
+  }
+
+  const total = FLASH_CARDS.length;
+  const idx = ((flashIndex % total) + total) % total;
+
+  const fc = FLASH_CARDS[idx] || {};
+  const front = fc.front || {};
+  const back = fc.back || {};
+  const face = flashFlipped ? back : front;
+
+  const faceAudio = getAudioUrl(face);
+  const showGoQuestions = (idx === total - 1);
+
+  $("#viewer").innerHTML = `
+    <div class="viewerScroll">
+      <div class="flashStage">
+        <button class="navArrow prev" id="prevArrow" type="button" aria-label="السابق" title="السابق">‹</button>
+
+        <div class="flashCardSingle" id="flashCard" title="اضغط لقلب البطاقة">
+
+          <div class="flashControls">
+            <button class="flashIconBtn" id="cardSoundBtn" type="button" aria-label="تشغيل الصوت" ${faceAudio ? "" : "disabled"} data-tip="اسمع">
+              <span class="ico">🔊</span>
+            </button>
+            <button class="flashIconBtn" id="cardSpeakBtn" type="button" aria-label="قراءة" data-tip="اقرأ">
+              <span class="ico">🗣️</span>
+            </button>
+          </div>
+
+          <div class="flashSidePill">${flashFlipped ? "الخلف" : "الأمام"}</div>
+
+          <img class="flashImg" id="cardImg" alt="card image"/>
+          <div class="flashText" id="cardText"></div>
+          <div class="flashDesc" id="cardDesc"></div>
+          <div class="hintLine">اضغط البطاقة لقلبها</div>
+        </div>
+
+        <button class="navArrow next" id="nextArrow" type="button" aria-label="التالي" title="التالي">›</button>
+      </div>
+
+      <div class="flashFooter" style="margin-top:12px;">
+        <div class="flashCounter">بطاقة ${idx + 1} من ${total}</div>
+        ${showGoQuestions ? `<button class="miniBtn primary" id="goQuestions" type="button">🧩 ابدأ الأسئلة</button>` : ``}
+      </div>
+    </div>
+  `;
+
+  $("#cardImg").src = face.imageUrl || "";
+  $("#cardText").textContent = face.text || "—";
+  $("#cardDesc").textContent = face.desc || "";
+
+  $("#cardSoundBtn")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    playSound(faceAudio);
+  });
+
+  $("#cardSpeakBtn")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    speakArabic([face.text, face.desc].filter(Boolean).join(" — "));
+  });
+
+  $("#flashCard")?.addEventListener("click", () => {
+    flashFlipped = !flashFlipped;
+    renderFlashView();
+  });
+
+  $("#prevArrow")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    flashIndex = (idx - 1 + total) % total;
+    flashFlipped = false;
+    renderFlashView();
+  });
+
+  $("#nextArrow")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    flashIndex = (idx + 1) % total;
+    flashFlipped = false;
+    renderFlashView();
+  });
+
+  if (showGoQuestions) {
+    $("#goQuestions")?.addEventListener("click", () => {
+      if (!levelId || !ACTIVE_SECTION || !ACTIVE_LESSON) return;
+
+      const url =
+        `${QUESTIONS_PAGE}?level=${encodeURIComponent(levelId)}` +
+        `&section=${encodeURIComponent(ACTIVE_SECTION.sectionId)}` +
+        `&lesson=${encodeURIComponent(ACTIVE_LESSON.lessonId)}`;
+
+      window.location.href = url;
+    });
+  }
+}
+
+/* =========================================================
+  12) DATA LOADING
+========================================================= */
+function normalize(raw) { return raw || {}; }
+
+function findLevel(d, id) {
+  const levels = Array.isArray(d?.levels) ? d.levels : [];
+  const key = String(id || "").toLowerCase();
+  return levels.find(l => String(l.levelId || "").toLowerCase() === key) || null;
+}
+
+async function loadFromFile() {
+  // 🚫 NO level param → NO fetch
+  if (!levelId) {
+    DATA = null;
+    LEVEL = null;
+    SECTIONS = [];
+    ACTIVE_SECTION = null;
+    ACTIVE_LESSON = null;
+
+    renderSectionsList();
+    enableModeButtons(false);
+
+    $("#welcomeTitle").textContent = "أقسام المستوى";
+    $("#welcomeSubtitle").textContent = "اختر مستوى من لوحة التحكم";
+
+    $("#viewer").innerHTML = `
+      <div class="viewerScroll" style="color:var(--muted);font-weight:900;line-height:1.8;">
+        الرجاء فتح الصفحة بهذه الصيغة:<br/>
+        <span dir="ltr" style="font-family:monospace;">sections.html?level=preliminary</span>
+      </div>
+    `;
+
+    showToast("تنبيه", "لم يتم تحديد مستوى في الرابط (?level=...)");
+    return;
+  }
+
+  // ✅ level exists → fetch JSON
+  try {
+    const res = await fetch(DATA_FILE, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    DATA = normalize(await res.json());
+
+    // Apply UI defaults
+    if (DATA?.uiDefaults) {
+      if (typeof DATA.uiDefaults.rtl === "boolean") {
+        document.documentElement.dir = DATA.uiDefaults.rtl ? "rtl" : "ltr";
+      }
+      if (DATA.uiDefaults.lang) {
+        document.documentElement.lang = DATA.uiDefaults.lang;
+      }
+    }
+
+    LEVEL = findLevel(DATA, levelId);
+
+    if (!LEVEL) {
+      SECTIONS = [];
+      renderSectionsList();
+      enableModeButtons(false);
+      showToast("تنبيه", `المستوى (${levelId}) غير موجود.`);
+      return;
+    }
+
+    // Normalize ids for consistent matching
+    SECTIONS = Array.isArray(LEVEL.sections)
+      ? LEVEL.sections.map(sec => ({
+          ...sec,
+          sectionId: String(sec.sectionId || "").toLowerCase(),
+          lessons: Array.isArray(sec.lessons)
+            ? sec.lessons.map(l => ({
+                ...l,
+                lessonId: String(l.lessonId || "").toLowerCase()
+              }))
+            : []
+        }))
+      : [];
+
+    $("#welcomeTitle").textContent = LEVEL.levelTitle || "أقسام المستوى";
+    $("#welcomeSubtitle").textContent = LEVEL.levelDesc || "اختر قسمًا ثم درسًا";
+
+    renderSectionsList();
+    enableModeButtons(false);
+
+  } catch (err) {
+    DATA = null;
+    LEVEL = null;
+    SECTIONS = [];
+    renderSectionsList();
+    enableModeButtons(false);
+    showToast("خطأ", "تعذر تحميل ملف البيانات.");
+  }
+}
+
+/* =========================================================
+  13) TOP NAV
+========================================================= */
+$("#reloadBtn")?.addEventListener("click", loadFromFile);
+$("#backBtn")?.addEventListener("click", () => history.back());
+$("#homeBtn")?.addEventListener("click", () => (window.location.href = "dashboard.html"));
+$("#starsTab")?.addEventListener("click", () => showToast("النجوم ⭐", `رصيدك: ${CHILD.stars}`));
+
+/* =========================================================
+  14) START
+========================================================= */
+loadFromFile();
+</script>
+
+
+</body>
+</html>
